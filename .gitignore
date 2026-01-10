@@ -1,0 +1,81 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Runtime
+/storage/*.key
+/public/storage
+storage/backups/
+storage/debugbar/
+
+# Logs
+*.log
+laravel.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache
+bootstrap/cache/
+.cache/
+
+# IDE
+/.idea
+/.vscode
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Database
+*.sqlite
+*.sqlite-journal
+database/database.sqlite
+
+# Testing
+/coverage
+.phpunit.result.cache
+
+# Backup
+*.backup
+*.bak
+
+# OS
+ehthumbs.db
+Icon?
+[Tt]humbs.db
+
+# Development
+docker-compose-custom.yml
+start.bat
+stop.bat
+test-docker.bat
+find-available-ports.bat
+install-dependencies.bat
+quick-test.bat
+fix-autoload.bat
+test-application.bat
+
+# Temporary files
+*.tmp
+*.temp
+
+# Composer
+composer.lock
+
+# Specific files to keep (but not sensitive ones)
+!.env.example
+!docker-compose.yml.example
+
+# Application specific
+/public/uploads/
+/temp/

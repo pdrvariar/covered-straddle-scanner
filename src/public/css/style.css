@@ -1,0 +1,116 @@
+:root {
+    --primary-color: #1f77b4;
+    --secondary-color: #2c3e50;
+    --success-color: #00aa00;
+    --danger-color: #ff0000;
+    --warning-color: #ffc107;
+    --light-bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --border-color: #dee2e6;
+}
+
+body {
+    background-color: #f5f7fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.main-header {
+    color: var(--primary-color);
+    font-weight: 700;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
+
+.metric-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.metric-card .card-title {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.metric-card .card-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+.metric-card.positive .card-value {
+    color: var(--success-color);
+}
+
+.metric-card.negative .card-value {
+    color: var(--danger-color);
+}
+
+.editable-section {
+    background: linear-gradient(135deg, #e8f4fd 0%, #d4e9fa 100%);
+    border-left: 4px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+/* Custom table styles */
+.table-custom {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.table-custom thead {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #2c3e50 100%);
+    color: white;
+}
+
+.table-custom tbody tr:hover {
+    background-color: rgba(31, 119, 180, 0.05);
+}
+
+/* Operation guide cards */
+.operation-card {
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.operation-card.buy {
+    border-top: 4px solid var(--success-color);
+}
+
+.operation-card.sell {
+    border-top: 4px solid var(--warning-color);
+}
+
+.operation-card.hold {
+    border-top: 4px solid var(--primary-color);
+}
+
+/* Chart container */
+.chart-container {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .metric-card .card-value {
+        font-size: 1.5rem;
+    }
+}

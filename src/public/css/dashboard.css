@@ -1,0 +1,254 @@
+/* Dashboard specific styles */
+
+.dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 1rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    transition: all 0.3s ease;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.stat-card .card-body {
+    padding: 1.5rem;
+}
+
+.stat-card .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.stat-card .stat-icon i {
+    font-size: 1.5rem;
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-card .stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Performance indicators */
+.perf-indicator {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.perf-positive {
+    background-color: rgba(0, 200, 83, 0.1);
+    color: #00c853;
+}
+
+.perf-negative {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+}
+
+.perf-neutral {
+    background-color: rgba(33, 150, 243, 0.1);
+    color: #2196f3;
+}
+
+/* Quick actions */
+.quick-action {
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.quick-action:hover {
+    border-color: #1f77b4;
+    background-color: rgba(31, 119, 180, 0.05);
+}
+
+.quick-action i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #1f77b4;
+}
+
+.quick-action .action-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.quick-action .action-desc {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Activity timeline */
+.activity-timeline {
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.activity-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.7rem;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #1f77b4;
+    border: 3px solid white;
+    box-shadow: 0 0 0 3px #e9ecef;
+}
+
+.timeline-item.success::before {
+    background-color: #00c853;
+}
+
+.timeline-item.warning::before {
+    background-color: #ff9800;
+}
+
+.timeline-item.danger::before {
+    background-color: #f44336;
+}
+
+.timeline-content {
+    padding-left: 1rem;
+}
+
+.timeline-time {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.timeline-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.timeline-desc {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Market overview */
+.market-overview {
+    background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+.market-overview .market-title {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.market-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.market-change {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .stat-card .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .quick-action {
+        padding: 1rem;
+    }
+
+    .quick-action i {
+        font-size: 1.5rem;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .stat-card {
+        background-color: #2d3748;
+        color: #e2e8f0;
+    }
+
+    .stat-card .stat-label {
+        color: #a0aec0;
+    }
+
+    .quick-action {
+        border-color: #4a5568;
+    }
+
+    .quick-action:hover {
+        border-color: #1f77b4;
+        background-color: rgba(31, 119, 180, 0.1);
+    }
+
+    .activity-timeline::before {
+        background-color: #4a5568;
+    }
+
+    .timeline-item::before {
+        border-color: #2d3748;
+        box-shadow: 0 0 0 3px #4a5568;
+    }
+}

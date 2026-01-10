@@ -1,0 +1,12 @@
+.git
+.gitignore
+README.md
+node_modules/
+vendor/
+.env
+*.log
+*.sqlite
+*.db
+.DS_Store
+Thumbs.db
+docker-compose.override.yml

@@ -1,0 +1,19 @@
+# Configurações locais
+/config/local.php
+
+# Cache
+/storage/framework/cache/*
+/storage/framework/views/*
+/storage/framework/sessions/*
+
+# Logs
+/storage/logs/*.log
+
+# Uploads
+/public/uploads/
+
+# Não ignore estas pastas vazias
+!/storage/framework/cache/.gitkeep
+!/storage/framework/views/.gitkeep
+!/storage/framework/sessions/.gitkeep
+!/storage/logs/.gitkeep
