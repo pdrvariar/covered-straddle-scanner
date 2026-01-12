@@ -59,10 +59,13 @@
             border-radius: 20px;
             margin: 0.25rem;
             font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
         .ticker-tag:hover {
             background: #dee2e6;
+            transform: scale(1.05);
         }
 
         .scanner-progress {
@@ -77,6 +80,22 @@
             background: linear-gradient(90deg, #1f77b4 0%, #00aa00 100%);
             border-radius: 3px;
             transition: width 0.3s ease;
+        }
+
+        .sort-option {
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+
+        .sort-option.active {
+            background-color: #1f77b4;
+            color: white;
+        }
+
+        .sort-option:hover:not(.active) {
+            background-color: #f0f2f6;
         }
     </style>
 </head>
@@ -98,12 +117,13 @@
                         </h1>
                         <p class="mb-0 opacity-75">
                             Analise múltiplos ativos simultaneamente e encontre as melhores oportunidades de operações de straddle coberto.
+                            <strong>Resultados automaticamente ordenados do maior para o menor lucro.</strong>
                         </p>
                     </div>
                     <div class="col-md-4 text-end">
                             <span class="info-badge">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Filtros ativos: Liquidez + Recência
+                                <i class="fas fa-sort-amount-down-alt me-1"></i>
+                                Ordenação: Maior Lucro
                             </span>
                     </div>
                 </div>
@@ -149,7 +169,7 @@
                                            class="form-control"
                                            id="access_token"
                                            name="access_token"
-                                           <?= empty($_ENV['OPLAB_TOKEN']) ? 'required' : '' ?>
+                                            <?= empty($_ENV['OPLAB_TOKEN']) ? 'required' : '' ?>
                                            value="<?= htmlspecialchars($_ENV['OPLAB_TOKEN'] ?? '') ?>"
                                            placeholder="<?= !empty($_ENV['OPLAB_TOKEN']) ? 'Token carregado do .env' : 'Insira seu token de acesso da OPLab' ?>">
                                     <button class="btn btn-outline-secondary" type="button" id="toggleToken">
@@ -195,8 +215,8 @@
 
                             <!-- Quick Tickers -->
                             <div class="mt-3">
-                                <label class="form-label mb-2">Tickers Sugeridos:</label>
-                                <div id="quickTickers">
+                                <label class="form-label mb-2">Tickers Sugeridos (clique para adicionar):</label>
+                                <div id="quickTickers" class="mb-2">
                                     <span class="ticker-tag" onclick="addTicker('BBAS3')">BBAS3</span>
                                     <span class="ticker-tag" onclick="addTicker('PETR4')">PETR4</span>
                                     <span class="ticker-tag" onclick="addTicker('VALE3')">VALE3</span>
@@ -207,6 +227,14 @@
                                     <span class="ticker-tag" onclick="addTicker('MGLU3')">MGLU3</span>
                                     <span class="ticker-tag" onclick="addTicker('LREN3')">LREN3</span>
                                     <span class="ticker-tag" onclick="addTicker('RAIL3')">RAIL3</span>
+                                </div>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-primary" onclick="clearTickers()">
+                                        <i class="fas fa-trash me-1"></i> Limpar
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" onclick="addAllTickers()">
+                                        <i class="fas fa-plus-circle me-1"></i> Adicionar Todos
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -285,10 +313,13 @@
                         <div class="param-card">
                             <h5 class="card-title">
                                 <i class="fas fa-filter me-2 text-secondary"></i>
-                                Filtros
+                                Filtros e Ordenação
                             </h5>
+
+                            <!-- Filtro de Lucro Mínimo -->
                             <div class="mb-3">
                                 <label for="min_profit" class="form-label">
+                                    <i class="fas fa-chart-line me-1"></i>
                                     Lucro Mínimo (%)
                                 </label>
                                 <input type="range"
@@ -304,8 +335,12 @@
                                     <small id="profitValue">0%</small>
                                     <small>50%</small>
                                 </div>
+                                <div class="form-text">
+                                    <small>Filtrar apenas operações com lucro acima deste valor</small>
+                                </div>
                             </div>
 
+                            <!-- Filtros de Qualidade -->
                             <div class="mb-3">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input"
@@ -314,6 +349,7 @@
                                            name="filter_liquidity"
                                            checked>
                                     <label class="form-check-label" for="filter_liquidity">
+                                        <i class="fas fa-exchange-alt me-1"></i>
                                         Filtro de Liquidez
                                     </label>
                                     <div class="form-text">
@@ -330,11 +366,22 @@
                                            name="filter_recency"
                                            checked>
                                     <label class="form-check-label" for="filter_recency">
+                                        <i class="fas fa-clock me-1"></i>
                                         Filtro de Recência
                                     </label>
                                     <div class="form-text">
                                         <small>Último negócio: 5 minutos</small>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Informação de Ordenação -->
+                            <div class="alert alert-info p-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <small>
+                                        <strong>Ordenação Automática:</strong> Os resultados serão exibidos da operação mais lucrativa para a menos lucrativa.
+                                    </small>
                                 </div>
                             </div>
                         </div>
@@ -403,10 +450,10 @@
                                 <div class="col-md-3">
                                     <div class="text-center p-3">
                                         <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                                            <i class="fas fa-chart-line fa-lg text-info"></i>
+                                            <i class="fas fa-sort-amount-down fa-lg text-info"></i>
                                         </div>
-                                        <h6>4. Analise Resultados</h6>
-                                        <p class="text-muted small">Veja as melhores oportunidades encontradas</p>
+                                        <h6>4. Veja os Resultados</h6>
+                                        <p class="text-muted small">Resultados ordenados por lucro - maiores primeiro!</p>
                                     </div>
                                 </div>
                             </div>
@@ -455,6 +502,19 @@
         }
     }
 
+    // Add all suggested tickers
+    function addAllTickers() {
+        const allTickers = ['BBAS3', 'PETR4', 'VALE3', 'ITUB4', 'BBDC4', 'WEGE3', 'ABEV3', 'MGLU3', 'LREN3', 'RAIL3'];
+        allTickers.forEach(ticker => addTicker(ticker));
+    }
+
+    // Clear all tickers
+    function clearTickers() {
+        if (confirm('Tem certeza que deseja limpar todos os tickers?')) {
+            document.getElementById('tickers').value = '';
+        }
+    }
+
     // Set expiration date
     function setExpiration(days) {
         const date = new Date();
@@ -474,6 +534,14 @@
         if (confirm('Tem certeza que deseja limpar todos os campos?')) {
             document.getElementById('scannerForm').reset();
             document.getElementById('profitValue').textContent = '0%';
+
+            // Reset to default tickers
+            document.getElementById('tickers').value = "<?= htmlspecialchars($defaultTickers) ?>";
+
+            // Reset expiration date
+            const defaultDate = new Date();
+            defaultDate.setDate(defaultDate.getDate() + 30);
+            document.getElementById('expiration_date').value = defaultDate.toISOString().split('T')[0];
         }
     }
 
@@ -503,6 +571,13 @@
 
         // Allow form submission
         return true;
+    });
+
+    // Initialize form with today's date as minimum
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        const expirationInput = document.getElementById('expiration_date');
+        expirationInput.min = today;
     });
 </script>
 </body>

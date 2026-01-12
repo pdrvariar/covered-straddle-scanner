@@ -66,9 +66,21 @@ class ScannerController {
                     );
 
                     if ($result) {
-                        $results[] = $result;
+                        // Se o método retornar um array de straddles (múltiplos strikes)
+                        if (isset($result[0]) && is_array($result[0])) {
+                            $results = array_merge($results, $result);
+                        } else {
+                            $results[] = $result;
+                        }
                     }
                 }
+
+                // ORDENAÇÃO DO MAIOR PARA O MENOR LUCRO PERCENTUAL
+                usort($results, function($a, $b) {
+                    $profitA = $a['profit_percent'] ?? 0;
+                    $profitB = $b['profit_percent'] ?? 0;
+                    return $profitB <=> $profitA; // Ordem decrescente (maior para menor)
+                });
 
                 // Store in session for later use
                 $_SESSION['scan_results'] = $results;
@@ -91,7 +103,6 @@ class ScannerController {
             exit;
         }
     }
-
     public function details() {
         $operationId = $_GET['id'] ?? null;
         $totalCapital = $_GET['capital'] ?? 50000;
@@ -100,6 +111,11 @@ class ScannerController {
             // Load from database
             $operationModel = new Operation($this->db);
             $operation = $operationModel->findById($operationId);
+
+            // Verificar e padronizar as chaves
+            if ($operation && isset($operation['strike_price'])) {
+                $operation['strike'] = $operation['strike_price']; // Para compatibilidade
+            }
         } else {
             // Load from session (temporary analysis)
             $results = $_SESSION['scan_results'] ?? [];
@@ -107,6 +123,11 @@ class ScannerController {
 
             if (isset($results[$index])) {
                 $operation = $results[$index];
+
+                // Verificar e padronizar as chaves
+                if (isset($operation['strike_price'])) {
+                    $operation['strike'] = $operation['strike_price']; // Para compatibilidade
+                }
             } else {
                 header('Location: /?action=scan');
                 exit;
@@ -115,7 +136,6 @@ class ScannerController {
 
         include __DIR__ . '/../Views/operation-details.php';
     }
-
     public function save() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $operationData = $_POST['operation'] ?? [];

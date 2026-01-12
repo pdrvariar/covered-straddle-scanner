@@ -58,14 +58,11 @@ class StrategyEngine {
                 return null;
             }
 
-            $bestStraddle = null;
-            $bestProfit = -INF;
+            $allStraddles = [];
 
             // 3. Agrupar por strike para formar straddles
             $strikes = array_unique(array_column($atmOptions, 'strike'));
             error_log("🎯 Strikes disponíveis: " . implode(', ', $strikes));
-
-            $allStraddles = [];
 
             foreach ($strikes as $strike) {
                 // Buscar call com este strike (maior volume)
@@ -118,33 +115,36 @@ class StrategyEngine {
 
                 error_log("✅ Strike $strike: Lucro = {$metrics['profit_percent']}%, Retorno mensal = {$metrics['monthly_profit_percent']}%");
 
-                if ($metrics['max_profit'] > $bestProfit) {
-                    $bestProfit = $metrics['max_profit'];
-                    $bestStraddle = [
-                        'symbol' => $symbol,
-                        'current_price' => $currentPrice,
-                        'call_symbol' => $call['symbol'],
-                        'call_premium' => $callPremium,
-                        'put_symbol' => $put['symbol'],
-                        'put_premium' => $putPremium,
-                        'strike' => $strike,
-                        'expiration_date' => $expirationDate,
-                        'days_to_maturity' => $daysToMaturity,
-                        'analysis_date' => $now->format('Y-m-d H:i:s'),
-                        'annual_profit_percent' => $metrics['profit_percent'] * (365 / $daysToMaturity)
-                    ];
+                $straddleData = [
+                    'symbol' => $symbol,
+                    'current_price' => $currentPrice,
+                    'call_symbol' => $call['symbol'],
+                    'call_premium' => $callPremium,
+                    'put_symbol' => $put['symbol'],
+                    'put_premium' => $putPremium,
+                    'strike_price' => $strike,  // AQUI - usar 'strike_price' em vez de 'strike'
+                    'expiration_date' => $expirationDate,
+                    'days_to_maturity' => $daysToMaturity,
+                    'analysis_date' => $now->format('Y-m-d H:i:s'),
+                    'annual_profit_percent' => $metrics['profit_percent'] * (365 / $daysToMaturity)
+                ];
 
-                    $bestStraddle = array_merge($bestStraddle, $metrics);
-                }
+                $straddleData = array_merge($straddleData, $metrics);
+                $allStraddles[] = $straddleData;
             }
 
-            if ($bestStraddle) {
-                error_log("🎉 Melhor straddle para $symbol: Strike {$bestStraddle['strike']}, Lucro {$bestStraddle['profit_percent']}%");
-                return $bestStraddle;
-            } else {
+            if (empty($allStraddles)) {
                 error_log("❌ Nenhum straddle viável encontrado para $symbol");
                 return null;
             }
+
+            // Ordenar do MAIOR para o MENOR lucro percentual
+            usort($allStraddles, function($a, $b) {
+                return $b['profit_percent'] <=> $a['profit_percent'];
+            });
+
+            error_log("🎉 Encontrados " . count($allStraddles) . " straddles para $symbol");
+            return $allStraddles;
 
         } catch (\Exception $e) {
             error_log("💥 ERRO na análise de $symbol: " . $e->getMessage());
@@ -152,7 +152,6 @@ class StrategyEngine {
             return null;
         }
     }
-
     private function getHighestVolumeOption(array $options): array {
         $maxVolume = -1;
         $bestOption = [];

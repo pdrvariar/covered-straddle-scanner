@@ -48,11 +48,16 @@ class ApiController {
                 );
 
                 if ($result) {
-                    $results[] = $result;
+                    // Se o método retornar um array de straddles (múltiplos strikes)
+                    if (isset($result[0]) && is_array($result[0])) {
+                        $results = array_merge($results, $result);
+                    } else {
+                        $results[] = $result;
+                    }
                 }
             }
 
-            // Sort by profit percentage
+            // Sort by profit percentage - MAIOR para MENOR
             usort($results, function($a, $b) {
                 return $b['profit_percent'] <=> $a['profit_percent'];
             });
@@ -76,7 +81,6 @@ class ApiController {
             ]);
         }
     }
-
     public function saveOperation(): void {
         header('Content-Type: application/json');
 
