@@ -7,13 +7,13 @@ $filters = $filters ?? [];
 // Define variáveis para o header
 $page_title = 'Operações - Covered Straddle Scanner';
 
-// Incluir header
+// Incluir header MODERNO
 include __DIR__ . '/layout/header.php';
 ?>
 
-    <div class="py-4">
+    <div class="content-wrapper mt-4 pt-3">
         <!-- Cabeçalho -->
-        <div class="page-header-gradient">
+        <div class="page-header-gradient mb-4">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="h2 mb-2">
@@ -25,10 +25,10 @@ include __DIR__ . '/layout/header.php';
                     </p>
                 </div>
                 <div class="text-end">
-                    <span class="badge bg-white text-primary fs-6">
-                        <i class="fas fa-database me-1"></i>
-                        <?= count($operations) ?> operações
-                    </span>
+                <span class="badge bg-white text-primary fs-6">
+                    <i class="fas fa-database me-1"></i>
+                    <?= count($operations) ?> operações
+                </span>
                 </div>
             </div>
         </div>
@@ -249,7 +249,7 @@ ob_start();
 
     function executeDelete(id) {
         if (typeof showLoading === 'function') showLoading('Excluindo operação...');
-        
+
         fetch('/api/operations/delete', {
             method: 'DELETE',
             headers: {

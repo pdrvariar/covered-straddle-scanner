@@ -1,5 +1,5 @@
-        </main>
-    </div>
+</main>
+</div>
 </div> <!-- End container-fluid -->
 
 <!-- Footer -->
@@ -31,6 +31,9 @@
 <!-- Bootstrap JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Layout Enhancement -->
+<script src="<?= $base_url ?? '' ?>/js/layout.js"></script>
+
 <!-- Custom JS -->
 <script src="<?= $base_url ?? '' ?>/js/main.js"></script>
 
@@ -57,7 +60,9 @@
     // Funções de compatibilidade para páginas antigas
     if (typeof showNotification === 'undefined') {
         window.showNotification = function(message, type = 'info') {
-            if (typeof Notification !== 'undefined') {
+            if (typeof LayoutEnhancer !== 'undefined') {
+                LayoutEnhancer.showToast(message, type);
+            } else if (typeof Notification !== 'undefined') {
                 Notification.show(message, type);
             } else {
                 alert(message);
@@ -81,6 +86,43 @@
         };
     }
 </script>
+<script>
+    // Preloader handler
+    (function() {
+        const pageLoader = document.getElementById('pageLoader');
 
+        if (pageLoader) {
+            // Função para esconder o preloader
+            function hidePreloader() {
+                if (pageLoader && !pageLoader.classList.contains('hidden')) {
+                    pageLoader.classList.add('hidden');
+
+                    // Remover completamente após a animação
+                    setTimeout(() => {
+                        if (pageLoader.parentNode) {
+                            pageLoader.style.display = 'none';
+                        }
+                    }, 500);
+                }
+            }
+
+            // Verificar se a página já está carregada
+            if (document.readyState === 'complete') {
+                hidePreloader();
+            } else {
+                // Aguardar o carregamento completo da página
+                window.addEventListener('load', function() {
+                    setTimeout(hidePreloader, 500); // Pequeno delay para melhor UX
+                });
+
+                // Segurança: esconder após 3 segundos mesmo se load não disparar
+                setTimeout(hidePreloader, 3000);
+            }
+
+            // Também esconder em caso de erro
+            window.addEventListener('error', hidePreloader);
+        }
+    })();
+</script>
 </body>
 </html>

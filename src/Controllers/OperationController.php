@@ -24,17 +24,8 @@ class OperationController
             $operationModel = new Operation();
             $stats = $operationModel->getStats();
 
-            // Definir variáveis para o header
-            $page_title = 'Operações - Covered Straddle Scanner';
-
-            // Incluir header
-            require __DIR__ . '/../Views/layout/header.php';
-
-            // Incluir view operations.php
+            // AGORA: Incluir a view operations.php que já tem o header
             require __DIR__ . '/../Views/operations.php';
-
-            // Incluir footer
-            require __DIR__ . '/../Views/layout/footer.php';
 
         } catch (\Exception $e) {
             echo "Erro ao carregar operações: " . $e->getMessage();
