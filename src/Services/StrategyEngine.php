@@ -33,7 +33,12 @@ class StrategyEngine {
                 return null;
             }
 
-            // 2. Buscar opções ATM filtradas (método otimizado)
+            // 2. Buscar dados do LFTS11 para cálculo de garantias
+            $lfts11Data = $this->getLfts11Data();
+            $lfts11Price = $lfts11Data['price'];
+            error_log("💰 Preço do LFTS11: R$ " . number_format($lfts11Price, 2));
+
+            // 3. Buscar opções ATM filtradas
             $atmOptions = $this->apiClient->getAtmOptions($symbol, $expirationDate, $currentPrice, $filters);
 
             if (empty($atmOptions)) {
@@ -60,7 +65,7 @@ class StrategyEngine {
 
             $allStraddles = [];
 
-            // 3. Agrupar por strike para formar straddles
+            // 4. Agrupar por strike para formar straddles
             $strikes = array_unique(array_column($atmOptions, 'strike'));
             error_log("🎯 Strikes disponíveis: " . implode(', ', $strikes));
 
@@ -96,14 +101,15 @@ class StrategyEngine {
                 $now = new DateTime('today');
                 $daysToMaturity = max(1, $dueDate->diff($now)->days);
 
-                // Calcular métricas
+                // Calcular métricas com dados do LFTS11
                 $metrics = $this->calculator->calculateMetrics(
                     $currentPrice,
                     $callPremium,
                     $putPremium,
                     $strike,
                     $daysToMaturity,
-                    $selicAnnual
+                    $selicAnnual,
+                    $lfts11Price
                 );
 
                 // Aplicar filtro de lucro mínimo
@@ -122,11 +128,13 @@ class StrategyEngine {
                     'call_premium' => $callPremium,
                     'put_symbol' => $put['symbol'],
                     'put_premium' => $putPremium,
-                    'strike_price' => $strike,  // AQUI - usar 'strike_price' em vez de 'strike'
+                    'strike_price' => $strike,
                     'expiration_date' => $expirationDate,
                     'days_to_maturity' => $daysToMaturity,
                     'analysis_date' => $now->format('Y-m-d H:i:s'),
-                    'annual_profit_percent' => $metrics['profit_percent'] * (365 / $daysToMaturity)
+                    'annual_profit_percent' => $metrics['profit_percent'] * (365 / $daysToMaturity),
+                    'lfts11_data' => $lfts11Data,
+                    'quantity' => $this->calculator->getQuantity()
                 ];
 
                 $straddleData = array_merge($straddleData, $metrics);
@@ -191,4 +199,40 @@ class StrategyEngine {
 
         return 0;
     }
+
+    private function getLfts11Data(): ?array {
+        try {
+            // Tentar buscar dados do LFTS11 (ETF de Tesouro Selic)
+            $lfts11Data = $this->apiClient->getStockData('LFTS11');
+
+            if ($lfts11Data) {
+                return [
+                    'price' => $lfts11Data['close'] ?? 0,
+                    'symbol' => 'LFTS11',
+                    'name' => 'ETF Tesouro Selic',
+                    'has_data' => true
+                ];
+            }
+
+            // Fallback: usar dados padrão se não encontrar
+            return [
+                'price' => 100.00, // Preço aproximado do LFTS11
+                'symbol' => 'LFTS11',
+                'name' => 'ETF Tesouro Selic',
+                'has_data' => false
+            ];
+
+        } catch (\Exception $e) {
+            error_log("⚠️  Erro ao buscar dados do LFTS11: " . $e->getMessage());
+            return [
+                'price' => 100.00,
+                'symbol' => 'LFTS11',
+                'name' => 'ETF Tesouro Selic',
+                'has_data' => false
+            ];
+        }
+    }
+
+
+
 }
