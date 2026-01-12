@@ -22,15 +22,15 @@
                 </a>
             </li>
             <li class="nav-item mb-2">
-                <a class="nav-link <?= ($_GET['action'] ?? '') == 'results' ? 'active' : '' ?>" href="/?action=results">
-                    <i class="fas fa-list-ul me-2"></i>
-                    Resultados
+                <a class="nav-link <?= ($_GET['action'] ?? '') == 'operations' ? 'active' : '' ?>" href="/?action=operations">
+                    <i class="fas fa-history me-2"></i>
+                    Operações
                 </a>
             </li>
             <li class="nav-item mb-2">
-                <a class="nav-link" href="#">
-                    <i class="fas fa-history me-2"></i>
-                    Histórico
+                <a class="nav-link <?= ($_GET['action'] ?? '') == 'results' ? 'active' : '' ?>" href="/?action=results">
+                    <i class="fas fa-list-ul me-2"></i>
+                    Resultados
                 </a>
             </li>
             <li class="nav-item mb-2">

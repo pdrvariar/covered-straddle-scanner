@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Config\Controllers;
 
 use App\Config\Database;
+use App\Models\Operation;
 use App\Services\OPLabAPIClient;
 use App\Services\StrategyEngine;
-use App\Models\Operation;
 
 class ScannerController {
     private $db;

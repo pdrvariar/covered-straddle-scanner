@@ -81,4 +81,3 @@ class UserPreference {
         return $settings;
     }
 }
-?>

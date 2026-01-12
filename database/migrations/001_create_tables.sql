@@ -16,10 +16,20 @@ CREATE TABLE operations (
                             profit_percent DECIMAL(8,2),
                             monthly_profit_percent DECIMAL(8,2),
                             selic_annual DECIMAL(8,4),
+                            status ENUM('active', 'closed', 'expired') DEFAULT 'active',
+                            notes TEXT,
+                            strategy_type VARCHAR(50),
+                            risk_level VARCHAR(20),
+                            entry_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            exit_date TIMESTAMP NULL,
+                            exit_price DECIMAL(10,2),
+                            exit_reason VARCHAR(100),
                             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                             INDEX idx_symbol (symbol),
-                            INDEX idx_expiration (expiration_date)
+                            INDEX idx_expiration (expiration_date),
+                            INDEX idx_status (status),
+                            INDEX idx_entry_date (entry_date)
 );
 
 -- Tabela para configurações de usuário

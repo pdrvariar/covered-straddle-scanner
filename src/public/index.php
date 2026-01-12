@@ -78,7 +78,7 @@ parse_str($query ?? '', $params);
 // API routes
 if (strpos($path, '/api/') === 0) {
     require __DIR__ . '/../Controllers/ApiController.php';
-    $api = new App\Controllers\ApiController();
+    $api = new \App\Config\Controllers\ApiController();
 
     $apiPath = substr($path, 5); // Remove '/api/'
 
@@ -110,32 +110,57 @@ $action = $params['action'] ?? 'dashboard';
 switch ($action) {
     case 'scan':
         require __DIR__ . '/../Controllers/ScannerController.php';
-        $controller = new App\Controllers\ScannerController();
+        $controller = new \App\Config\Controllers\ScannerController();
         $controller->scan();
         break;
 
     case 'results':
         require __DIR__ . '/../Controllers/ScannerController.php';
-        $controller = new App\Controllers\ScannerController();
+        $controller = new \App\Config\Controllers\ScannerController();
         $controller->results();
         break;
 
     case 'details':
         require __DIR__ . '/../Controllers/ScannerController.php';
-        $controller = new App\Controllers\ScannerController();
+        $controller = new \App\Config\Controllers\ScannerController();
         $controller->details();
         break;
 
     case 'save':
         require __DIR__ . '/../Controllers/ScannerController.php';
-        $controller = new App\Controllers\ScannerController();
+        $controller = new \App\Config\Controllers\ScannerController();
         $controller->save();
+        break;
+
+    case 'operations':
+        require __DIR__ . '/../Controllers/OperationController.php';
+        $controller = new \App\Config\Controllers\OperationController();
+
+        // Verificar se há sub-ação (show, export, etc.)
+        $subAction = $_GET['sub'] ?? 'index';
+        $id = $_GET['id'] ?? null;
+
+        switch ($subAction) {
+            case 'show':
+                if ($id) {
+                    $controller->show($id);
+                } else {
+                    header('Location: /?action=operations');
+                }
+                break;
+            case 'export':
+                $controller->export();
+                break;
+            default:
+                $controller->index();
+                break;
+        }
         break;
 
     case 'dashboard':
     default:
         require __DIR__ . '/../Controllers/DashboardController.php';
-        $controller = new App\Controllers\DashboardController();
+        $controller = new \App\Config\Controllers\DashboardController();
         $controller->index();
         break;
 }

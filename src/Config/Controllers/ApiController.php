@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Config\Controllers;
 
 use App\Config\Database;
+use App\Controllers\Exception;
 use App\Models\Operation;
 use App\Services\OPLabAPIClient;
 use App\Services\StrategyEngine;
@@ -162,6 +163,31 @@ class ApiController {
                 'success' => false,
                 'error' => $e->getMessage()
             ]);
+        }
+    }
+
+    public function deleteOperation()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            if (!isset($data['operation_id'])) {
+                echo json_encode(['success' => false, 'message' => 'ID da operação não fornecido']);
+                return;
+            }
+
+            try {
+                $operationId = $data['operation_id'];
+                $db = Database::getConnection();
+
+                $sql = "DELETE FROM operations WHERE id = :id";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([':id' => $operationId]);
+
+                echo json_encode(['success' => true, 'message' => 'Operação excluída com sucesso']);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => 'Erro ao excluir operação: ' . $e->getMessage()]);
+            }
         }
     }
 }

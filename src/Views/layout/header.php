@@ -70,6 +70,11 @@ $base_url .= "://" . $_SERVER['HTTP_HOST'];
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link <?= ($_GET['action'] ?? '') == 'operations' ? 'active' : '' ?>" href="/?action=operations">
+                        <i class="fas fa-history me-1"></i> Operações
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link <?= ($_GET['action'] ?? '') == 'results' ? 'active' : '' ?>" href="/?action=results">
                         <i class="fas fa-list me-1"></i> Resultados
                     </a>
