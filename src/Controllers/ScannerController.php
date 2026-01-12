@@ -118,11 +118,10 @@ class ScannerController {
             }
         } else {
             // Load from session (temporary analysis)
-            $results = $_SESSION['scan_results'] ?? [];
             $index = $_GET['index'] ?? 0;
 
-            if (isset($results[$index])) {
-                $operation = $results[$index];
+            if (isset($_SESSION['scan_results'][$index])) {
+                $operation = $_SESSION['scan_results'][$index];
 
                 // Verificar e padronizar as chaves
                 if (isset($operation['strike_price'])) {

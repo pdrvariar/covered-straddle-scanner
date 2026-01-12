@@ -13,7 +13,7 @@ class StrategyEngine {
         $this->calculator = new CoveredStraddleCalculator();
     }
 
-    public function evaluateStraddles(string $symbol, string $expirationDate, float $selicAnnual, array $filters = []): ?array {
+    public function evaluateStraddles(string $symbol, string $expirationDate, float $selicAnnual, array $filters = [], bool $includePayoffData = false): ?array {
         try {
             error_log("=== Iniciando análise para $symbol (venc: $expirationDate) ===");
 
@@ -116,7 +116,8 @@ class StrategyEngine {
                     $strike,
                     $daysToMaturity,
                     $selicAnnual,
-                    $lfts11Price
+                    $lfts11Price,
+                    $includePayoffData
                 );
 
                 // Aplicar filtro de lucro mínimo

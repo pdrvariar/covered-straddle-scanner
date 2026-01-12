@@ -77,7 +77,8 @@ class CoveredStraddleCalculator {
         float $strike,
         int $daysToMaturity,
         float $selicAnnual,
-        float $lfts11Price = null
+        float $lfts11Price = null,
+        bool $includePayoffData = false
     ): array {
         // Usar preço fornecido ou default
         $lfts11Price = $lfts11Price ?? $this->lfts11Price;
@@ -130,7 +131,7 @@ class CoveredStraddleCalculator {
         $monthlyProfit = $maxProfit * (30 / $daysToMaturity);
         $monthlyProfitPercent = ($monthlyProfit / $initialInvestment) * 100;
 
-        return [
+        $result = [
             // Investimentos
             'stock_investment' => $stockInvestment,
             'lfts11_investment' => $lfts11Investment,
@@ -156,16 +157,19 @@ class CoveredStraddleCalculator {
             // Pontos de equilíbrio
             'breakevens' => $breakevens,
 
-            // Dados para gráficos
-            'payoff_data' => [
-                'prices' => $priceRange,
-                'payoff' => $payoff
-            ],
-
             // Análise de risco
             'margin_safety' => (($strike - $currentPrice) / $currentPrice) * 100,
             'downside_protection' => (($strike / $currentPrice) - 1) * 100,
             'premium_yield' => ($totalPremiums / ($stockInvestment + $lfts11Investment)) * 100
         ];
+
+        if ($includePayoffData) {
+            $result['payoff_data'] = [
+                'prices' => $priceRange,
+                'payoff' => $payoff
+            ];
+        }
+
+        return $result;
     }
 }

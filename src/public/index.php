@@ -4,6 +4,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Increase memory limit for scanning large amount of tickers
+ini_set('memory_limit', '256M');
+
 // Start session
 session_start();
 

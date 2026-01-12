@@ -355,7 +355,6 @@ include __DIR__ . '/layout/header.php';
 // Passar o JavaScript da página para o footer
 ob_start();
 ?>
-<script>
     // Filtros de resultados
     function filterResults(filterType) {
         const items = document.querySelectorAll('.result-item');
@@ -542,7 +541,6 @@ ob_start();
         };
         return sorts[sortBy] || 'Lucro';
     }
-</script>
 <?php
 $page_js = ob_get_clean();
 

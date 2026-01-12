@@ -274,7 +274,7 @@ include __DIR__ . '/layout/header.php';
                                                        max="50"
                                                        step="0.1"
                                                        value="0"
-                                                       onchange="updateProfitDisplay(this.value)">
+                                                       oninput="updateProfitDisplay(this.value)">
                                                 <button type="button" class="btn btn-outline-secondary" onclick="decreaseProfit()">
                                                     <i class="fas fa-minus"></i>
                                                 </button>
@@ -415,7 +415,6 @@ include __DIR__ . '/layout/header.php';
 // Passar o JavaScript da página para o footer
 ob_start();
 ?>
-    <script>
         // Toggle token visibility
         document.getElementById('toggleToken').addEventListener('click', function() {
             const tokenInput = document.getElementById('access_token');
@@ -667,7 +666,35 @@ ob_start();
                 toast.remove();
             });
         }
-    </script>
+
+        // Atalhos de teclado para Lucro Mínimo
+        document.addEventListener('keydown', function(e) {
+            // Ignorar se o usuário estiver digitando em campos de texto (exceto o próprio lucro)
+            const activeElement = document.activeElement;
+            const isInput = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA';
+            const isTargetProfit = activeElement.id === 'min_profit';
+
+            if (isInput && !isTargetProfit) {
+                return;
+            }
+
+            // Teclas + (187 ou 107) e - (189 ou 109)
+            if (e.key === '+' || e.key === '=') {
+                increaseProfit();
+                if (!isTargetProfit) e.preventDefault();
+            } else if (e.key === '-' || e.key === '_') {
+                decreaseProfit();
+                if (!isTargetProfit) e.preventDefault();
+            }
+        });
+
+        // Inicializar display ao carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            const minProfitInput = document.getElementById('min_profit');
+            if (minProfitInput) {
+                updateProfitDisplay(minProfitInput.value);
+            }
+        });
 <?php
 $page_js = ob_get_clean();
 

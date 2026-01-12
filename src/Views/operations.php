@@ -235,7 +235,6 @@ include __DIR__ . '/layout/header.php';
 // Passar o JavaScript da página para o footer
 ob_start();
 ?>
-<script>
     // Função para excluir operação
     function deleteOperation(id) {
         if (typeof confirmAction === 'function') {
@@ -289,7 +288,6 @@ ob_start();
             tooltips.forEach(el => new bootstrap.Tooltip(el));
         }
     });
-</script>
 <?php
 $page_js = ob_get_clean();
 

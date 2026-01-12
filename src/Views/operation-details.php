@@ -53,7 +53,7 @@ include __DIR__ . '/layout/header.php';
                     </p>
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-success shadow-sm" onclick="saveOperation()">
+                    <button class="btn btn-success shadow-sm" onclick="saveOperation(event)">
                         <i class="fas fa-save me-2"></i>Salvar
                     </button>
                     <a href="/?action=results" class="btn btn-light shadow-sm">
@@ -520,7 +520,7 @@ include __DIR__ . '/layout/header.php';
                     <button class="btn btn-outline-secondary" onclick="window.print()">
                         <i class="fas fa-print me-2"></i>Imprimir Análise
                     </button>
-                    <button class="btn btn-outline-info ms-2" onclick="exportOperation()">
+                    <button class="btn btn-outline-info ms-2" onclick="exportOperation(event)">
                         <i class="fas fa-download me-2"></i>Exportar Dados
                     </button>
                 </div>
@@ -533,6 +533,80 @@ include __DIR__ . '/layout/header.php';
         </div>
     </div>
 </div>
+
+<script>
+/**
+ * Dados da operação injetados pelo PHP
+ */
+const operationData = <?= json_encode($operation) ?>;
+
+/**
+ * Salva a operação no banco de dados via API
+ */
+async function saveOperation(event) {
+    const btn = event ? event.currentTarget : null;
+    const originalHtml = btn ? btn.innerHTML : '';
+
+    try {
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Salvando...';
+        }
+
+        const response = await fetch('/api/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(operationData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            if (typeof showNotification === 'function') {
+                showNotification('Operação salva com sucesso!', 'success');
+            } else {
+                alert('Operação salva com sucesso!');
+            }
+
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-check me-2"></i>Salvo!';
+                btn.className = 'btn btn-outline-success shadow-sm';
+            }
+        } else {
+            throw new Error(result.error || 'Erro desconhecido ao salvar');
+        }
+    } catch (error) {
+        console.error('Erro ao salvar operação:', error);
+        
+        if (typeof showNotification === 'function') {
+            showNotification('Erro: ' + error.message, 'error');
+        } else {
+            alert('Erro ao salvar operação: ' + error.message);
+        }
+
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }
+}
+
+/**
+ * Exporta os dados da operação para JSON
+ */
+function exportOperation(event) {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(operationData, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "operacao_" + (operationData.symbol || 'detalhes') + ".json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+</script>
 
 <?php
 // O sidebar agora é incluído pelo header.php
