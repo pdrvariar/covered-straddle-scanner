@@ -34,9 +34,16 @@ class StrategyEngine {
             }
 
             // 2. Buscar dados do LFTS11 para cálculo de garantias
-            $lfts11Data = $this->getLfts11Data();
+            $lfts11Fetcher = new Lfts11PriceFetcher($this->apiClient);
+            $lfts11Data = $lfts11Fetcher->getData();
             $lfts11Price = $lfts11Data['price'];
-            error_log("💰 Preço do LFTS11: R$ " . number_format($lfts11Price, 2));
+
+            error_log("💰 Preço do LFTS11 (fonte: {$lfts11Data['source']}): R$ " . number_format($lfts11Price, 2));
+
+// Registrar no log se está usando valor padrão
+            if ($lfts11Data['source'] === 'default') {
+                error_log("⚠️  ATENÇÃO: Usando valor padrão para LFTS11. Verifique a conexão com as fontes de dados.");
+            }
 
             // 3. Buscar opções ATM filtradas
             $atmOptions = $this->apiClient->getAtmOptions($symbol, $expirationDate, $currentPrice, $filters);
