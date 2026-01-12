@@ -119,13 +119,15 @@ class Operation
                 put_symbol, put_premium, expiration_date, days_to_maturity,
                 initial_investment, max_profit, max_loss, profit_percent,
                 monthly_profit_percent, selic_annual, status, strategy_type,
-                risk_level, notes
+                risk_level, notes, quantity, lfts11_price, lfts11_quantity,
+                lfts11_investment, lfts11_return
             ) VALUES (
                 :symbol, :current_price, :strike_price, :call_symbol, :call_premium,
                 :put_symbol, :put_premium, :expiration_date, :days_to_maturity,
                 :initial_investment, :max_profit, :max_loss, :profit_percent,
                 :monthly_profit_percent, :selic_annual, :status, :strategy_type,
-                :risk_level, :notes
+                :risk_level, :notes, :quantity, :lfts11_price, :lfts11_quantity,
+                :lfts11_investment, :lfts11_return
             )";
 
             $stmt = $db->prepare($sql);
@@ -149,7 +151,12 @@ class Operation
                 ':status' => $data['status'] ?? 'active',
                 ':strategy_type' => $data['strategy_type'] ?? 'covered_straddle',
                 ':risk_level' => $data['risk_level'] ?? 'medium',
-                ':notes' => $data['notes'] ?? null
+                ':notes' => $data['notes'] ?? null,
+                ':quantity' => $data['quantity'] ?? 1000,
+                ':lfts11_price' => $data['lfts11_price'] ?? ($data['lfts11_data']['price'] ?? null),
+                ':lfts11_quantity' => $data['lfts11_quantity'] ?? ($data['lfts11_data']['quantity'] ?? null),
+                ':lfts11_investment' => $data['lfts11_investment'] ?? null,
+                ':lfts11_return' => $data['lfts11_return'] ?? null
             ];
 
             if ($stmt->execute($params)) {

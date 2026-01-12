@@ -35,8 +35,17 @@ class StrategyEngine {
 
             // 2. Buscar dados do LFTS11 para cálculo de garantias
             $lfts11Fetcher = new Lfts11PriceFetcher($this->apiClient);
+            $lfts11Price = $lfts11Fetcher->getPrice();
             $lfts11Data = $lfts11Fetcher->getData();
-            $lfts11Price = $lfts11Data['price'];
+            // Garantir que o preço de getData seja o mesmo que getPrice obteve
+            $lfts11Data['price'] = $lfts11Price;
+
+            if ($lfts11Price <= 0) {
+                error_log("⚠️  Preço do LFTS11 inválido (R$ $lfts11Price). Usando fallback de R$ 146,00");
+                $lfts11Price = 146.00;
+                $lfts11Data['price'] = 146.00;
+                $lfts11Data['source'] = 'forced_fallback';
+            }
 
             error_log("💰 Preço do LFTS11 (fonte: {$lfts11Data['source']}): R$ " . number_format($lfts11Price, 2));
 
@@ -224,7 +233,7 @@ class StrategyEngine {
 
             // Fallback: usar dados padrão se não encontrar
             return [
-                'price' => 100.00, // Preço aproximado do LFTS11
+                'price' => 146.00, // Preço aproximado do LFTS11
                 'symbol' => 'LFTS11',
                 'name' => 'ETF Tesouro Selic',
                 'has_data' => false
@@ -233,7 +242,7 @@ class StrategyEngine {
         } catch (\Exception $e) {
             error_log("⚠️  Erro ao buscar dados do LFTS11: " . $e->getMessage());
             return [
-                'price' => 100.00,
+                'price' => 146.00,
                 'symbol' => 'LFTS11',
                 'name' => 'ETF Tesouro Selic',
                 'has_data' => false

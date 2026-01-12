@@ -22,11 +22,22 @@ $bep = $operation['strike_price'] - ($operation['call_premium'] + $operation['pu
 
 // LFTS11 data
 $lfts11Data = $operation['lfts11_data'] ?? [
-        'price' => 100.00,
-        'symbol' => 'LFTS11',
-        'name' => 'ETF Tesouro Selic',
-        'has_data' => false
+    'price' => $operation['lfts11_price'] ?? 146.00,
+    'symbol' => 'LFTS11',
+    'name' => 'ETF Tesouro Selic',
+    'has_data' => isset($operation['lfts11_price']) && $operation['lfts11_price'] > 0
 ];
+
+// Re-calcular lfts11_investment e return se vierem do banco mas forem nulos
+if (!isset($operation['lfts11_investment']) || $operation['lfts11_investment'] == 0) {
+    $totalGuaranteeNeeded = $operation['strike_price'] * $operation['quantity'];
+    $lfts11Price = $lfts11Data['price'] > 0 ? $lfts11Data['price'] : 146.00;
+    $operation['lfts11_quantity'] = ceil($totalGuaranteeNeeded / $lfts11Price);
+    $operation['lfts11_investment'] = $operation['lfts11_quantity'] * $lfts11Price;
+    
+    $selicPeriodReturn = ($operation['selic_annual'] ?? 0.13) * (($operation['days_to_maturity'] ?? 30) / 365);
+    $operation['lfts11_return'] = $operation['lfts11_investment'] * $selicPeriodReturn;
+}
 ?>
 
 <?php
@@ -503,6 +514,30 @@ include __DIR__ . '/layout/header.php';
                 </div>
             </div>
 
+            <!-- Gráfico de Payoff -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card detail-card">
+                        <div class="card-header bg-primary text-white detail-card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-area me-2"></i>
+                                Gráfico de Payoff no Vencimento
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div style="height: 400px; position: relative;">
+                                <canvas id="operationPayoffChart"></canvas>
+                            </div>
+                            <div class="mt-3 text-center">
+                                <small class="text-muted">
+                                    Este gráfico mostra o resultado financeiro projetado (Lucro/Prejuízo) da operação baseado no preço da ação no dia do vencimento.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Notas Importantes -->
             <div class="alert alert-warning mt-4">
                 <div class="d-flex align-items-center">
@@ -516,30 +551,6 @@ include __DIR__ . '/layout/header.php';
                             <li>Taxas de corretagem, emolumentos e impostos não estão incluídos nos cálculos</li>
                             <li>Recomenda-se consultar um assessor de investimentos antes de realizar a operação</li>
                         </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Gráfico de Payoff -->
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <div class="card detail-card">
-                        <div class="card-header bg-primary text-white detail-card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-chart-area me-2"></i>
-                                Gráfico de Payoff no Vencimento
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div style="height: 400px; position: relative;">
-                                <canvas id="payoffChart"></canvas>
-                            </div>
-                            <div class="mt-3 text-center">
-                                <small class="text-muted">
-                                    Este gráfico mostra o resultado financeiro projetado (Lucro/Prejuízo) da operação baseado no preço da ação no dia do vencimento.
-                                </small>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -564,14 +575,24 @@ include __DIR__ . '/layout/header.php';
     </div>
 </div>
 
-<!-- Incluir Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<!-- Scripts Específicos -->
 <script>
 /**
  * Dados da operação injetados pelo PHP
  */
-const operationData = <?= json_encode($operation) ?>;
+const rawData = <?= json_encode($operation) ?>;
+// Garantir que campos numéricos sejam realmente números
+const operationData = {
+    ...rawData,
+    quantity: parseFloat(rawData.quantity) || 1000,
+    strike_price: parseFloat(rawData.strike_price || rawData.strike) || 0,
+    current_price: parseFloat(rawData.current_price) || 0,
+    call_premium: parseFloat(rawData.call_premium) || 0,
+    put_premium: parseFloat(rawData.put_premium) || 0,
+    lfts11_investment: parseFloat(rawData.lfts11_investment) || 0,
+    lfts11_return: parseFloat(rawData.lfts11_return) || 0,
+    days_to_maturity: parseInt(rawData.days_to_maturity) || 30
+};
 
 /**
  * Variável global para o gráfico
@@ -582,6 +603,9 @@ let payoffChart = null;
  * Formata número para moeda/decimal brasileiro
  */
 function formatBR(val, decimals = 2) {
+    if (val === null || val === undefined || isNaN(val)) {
+        return '0,' + '0'.repeat(decimals);
+    }
     return new Intl.NumberFormat('pt-BR', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals
@@ -592,96 +616,147 @@ function formatBR(val, decimals = 2) {
  * Atualiza todos os cálculos quando os prêmios mudam
  */
 function updateCalculations() {
-    const callPremium = parseFloat(document.getElementById('input-call-premium').value) || 0;
-    const putPremium = parseFloat(document.getElementById('input-put-premium').value) || 0;
-    const quantity = operationData.quantity;
-    const strike = operationData.strike_price;
-    const currentPrice = operationData.current_price;
-    const lftsInvestment = operationData.lfts11_investment || 0;
-    const lftsReturn = operationData.lfts11_return || 0;
-    const stockInvestment = currentPrice * quantity;
+    try {
+        const callPremiumInput = document.getElementById('input-call-premium');
+        const putPremiumInput = document.getElementById('input-put-premium');
+        
+        if (!callPremiumInput || !putPremiumInput) return;
 
-    // Atualizar objeto operationData para persistência/exportação
-    operationData.call_premium = callPremium;
-    operationData.put_premium = putPremium;
+        const callPremium = parseFloat(callPremiumInput.value) || 0;
+        const putPremium = parseFloat(putPremiumInput.value) || 0;
+        
+        // Usar valores já convertidos em operationData
+        const quantity = operationData.quantity;
+        const strike = operationData.strike_price;
+        const currentPrice = operationData.current_price;
+        const lftsInvestment = operationData.lfts11_investment;
+        const lftsReturn = operationData.lfts11_return;
+        const stockInvestment = currentPrice * quantity;
 
-    // Cálculos Básicos
-    const callTotalRevenue = callPremium * quantity;
-    const putTotalRevenue = putPremium * quantity;
-    const totalPremiums = (callPremium + putPremium) * quantity;
-    
-    // Atualizar no DOM
-    document.getElementById('call-total-revenue').innerText = formatBR(callTotalRevenue);
-    document.getElementById('put-total-revenue').innerText = formatBR(putTotalRevenue);
-    document.getElementById('total-premiums-badge').innerText = formatBR(totalPremiums);
-    document.getElementById('total-premiums-financeira').innerText = formatBR(totalPremiums);
+        // Atualizar objeto operationData para persistência/exportação
+        operationData.call_premium = callPremium;
+        operationData.put_premium = putPremium;
 
-    // Investimento Líquido Inicial
-    const initialInvestment = stockInvestment + lftsInvestment - totalPremiums;
-    operationData.initial_investment = initialInvestment;
-    document.getElementById('initial-investment').innerText = formatBR(initialInvestment);
+        // Cálculos Básicos
+        const callTotalRevenue = callPremium * quantity;
+        const putTotalRevenue = putPremium * quantity;
+        const totalPremiums = (callPremium + putPremium) * quantity;
+        
+        // Helper para atualizar texto do elemento com segurança
+        const setElText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = text;
+        };
 
-    // Lucro Máximo (quando S_T >= Strike)
-    const maxProfit = ((strike - currentPrice) * quantity) + totalPremiums + lftsReturn;
-    operationData.max_profit = maxProfit;
-    document.getElementById('max-profit').innerText = formatBR(maxProfit);
+        // Atualizar no DOM
+        setElText('call-total-revenue', formatBR(callTotalRevenue));
+        setElText('put-total-revenue', formatBR(putTotalRevenue));
+        setElText('total-premiums-badge', formatBR(totalPremiums));
+        setElText('total-premiums-financeira', formatBR(totalPremiums));
 
-    // Lucro %
-    const profitPercent = (maxProfit / initialInvestment) * 100;
-    operationData.profit_percent = profitPercent;
-    document.getElementById('resumo-retorno').innerText = formatBR(profitPercent);
+        // Investimento Líquido Inicial
+        const initialInvestment = stockInvestment + lftsInvestment - totalPremiums;
+        operationData.initial_investment = initialInvestment;
+        setElText('initial-investment', formatBR(initialInvestment));
 
-    // Mensal e Anual (Proporcional)
-    const days = operationData.days_to_maturity || 30;
-    const monthlyProfit = (profitPercent / days) * 30;
-    const annualProfit = (profitPercent / days) * 365;
-    
-    operationData.monthly_profit_percent = monthlyProfit;
-    operationData.annual_profit_percent = annualProfit;
-    
-    document.getElementById('resumo-mensal').innerText = formatBR(monthlyProfit);
-    document.getElementById('annual-profit').innerText = formatBR(annualProfit);
+        // Lucro Máximo (quando S_T >= Strike)
+        // Lucro = (Strike - Preço Atual) * Qtd + Prêmios + Retorno LFTS11
+        const maxProfit = ((strike - currentPrice) * quantity) + totalPremiums + lftsReturn;
+        operationData.max_profit = maxProfit;
+        setElText('max-profit', formatBR(maxProfit));
 
-    // Yield dos Prêmios
-    const premiumYield = (totalPremiums / (stockInvestment + lftsInvestment)) * 100;
-    document.getElementById('premium-yield').innerText = formatBR(premiumYield);
+        // Lucro %
+        const profitPercent = initialInvestment > 0 ? (maxProfit / initialInvestment) * 100 : 0;
+        operationData.profit_percent = profitPercent;
+        setElText('resumo-retorno', formatBR(profitPercent));
 
-    // BEP (Ponto de Equilíbrio)
-    const bep = (currentPrice + strike - (totalPremiums / quantity) - (lftsReturn / quantity)) / 2;
-    document.getElementById('resumo-bep').innerText = formatBR(bep);
-    
-    // Atualizar lista de BEPs
-    const breakevensList = document.getElementById('breakevens-list');
-    breakevensList.innerHTML = `<span class="badge bg-info">R$ ${formatBR(bep)}</span>`;
-    operationData.breakevens = [bep];
+        // Mensal e Anual (Proporcional)
+        const days = parseInt(operationData.days_to_maturity) || 30;
+        const monthlyProfit = (profitPercent / days) * 30;
+        const annualProfit = (profitPercent / days) * 365;
+        
+        operationData.monthly_profit_percent = monthlyProfit;
+        operationData.annual_profit_percent = annualProfit;
+        
+        setElText('resumo-mensal', formatBR(monthlyProfit));
+        setElText('annual-profit', formatBR(annualProfit));
 
-    // Perda Máxima (Ação a zero)
-    const maxLoss = ((-currentPrice - strike) * quantity) + totalPremiums + lftsReturn;
-    operationData.max_loss = Math.abs(maxLoss);
-    document.getElementById('max-loss').innerText = formatBR(Math.abs(maxLoss));
+        // Yield dos Prêmios
+        const totalCapitalInvested = stockInvestment + lftsInvestment;
+        const premiumYield = totalCapitalInvested > 0 ? (totalPremiums / totalCapitalInvested) * 100 : 0;
+        setElText('premium-yield', formatBR(premiumYield));
 
-    // Renderizar Gráfico
-    renderPayoffChart();
+        // BEP (Ponto de Equilíbrio)
+        // Fórmula derivada: Price = (currentPrice + strike - (totalPremiums / quantity) - (lftsReturn / quantity)) / 2
+        let bep = 0;
+        if (quantity > 0) {
+            bep = (currentPrice + strike - (totalPremiums / quantity) - (lftsReturn / quantity)) / 2;
+        }
+        
+        if (isNaN(bep) || !isFinite(bep)) {
+            bep = 0;
+        }
+
+        operationData.breakevens = [bep];
+        setElText('resumo-bep', formatBR(bep));
+        
+        // Atualizar lista de BEPs
+        const breakevensList = document.getElementById('breakevens-list');
+        if (breakevensList) {
+            breakevensList.innerHTML = `<span class="badge bg-info">R$ ${formatBR(bep)}</span>`;
+        }
+
+        // Perda Máxima (Ação a zero)
+        // Prejuízo em S=0: (-currentPrice - strike) * Qty + Premiums + lftsReturn
+        const maxLoss = ((-currentPrice - strike) * quantity) + totalPremiums + lftsReturn;
+        operationData.max_loss = Math.abs(maxLoss);
+        setElText('max-loss', formatBR(Math.abs(maxLoss)));
+
+        // Renderizar Gráfico
+        renderPayoffChart();
+    } catch (e) {
+        console.error("Erro ao atualizar cálculos:", e);
+    }
 }
 
 /**
  * Renderiza o gráfico de payoff usando Chart.js
  */
 function renderPayoffChart() {
-    const canvas = document.getElementById('payoffChart');
-    if (!canvas) return;
+    const canvas = document.getElementById('operationPayoffChart');
+    if (!canvas) {
+        console.warn('Canvas do gráfico não encontrado: operationPayoffChart');
+        return;
+    }
+    
+    // Verificar se Chart.js está carregado
+    if (typeof Chart === 'undefined') {
+        console.error('Erro: Chart.js não está carregado!');
+        return;
+    }
     
     const ctx = canvas.getContext('2d');
-    const strike = operationData.strike_price;
-    const currentPrice = operationData.current_price;
-    const quantity = operationData.quantity;
+    
+    // Garantir que os dados sejam numéricos
+    const strike = parseFloat(operationData.strike_price) || 0;
+    const currentPrice = parseFloat(operationData.current_price) || 0;
+    const quantity = parseFloat(operationData.quantity) || 1000;
     const callPremium = parseFloat(operationData.call_premium) || 0;
     const putPremium = parseFloat(operationData.put_premium) || 0;
-    const lftsReturn = operationData.lfts11_return || 0;
+    const lftsReturn = parseFloat(operationData.lfts11_return) || 0;
     
-    const minPrice = Math.max(0, currentPrice * 0.8);
-    const maxPrice = currentPrice * 1.2;
-    const step = (maxPrice - minPrice) / 40;
+    if (currentPrice === 0) {
+        console.warn('Preço atual é 0, não é possível renderizar o gráfico adequadamente.');
+        return;
+    }
+
+    // Definir faixa de preço (30% para cada lado)
+    const minPrice = Math.max(0, currentPrice * 0.7);
+    const maxPrice = currentPrice * 1.3;
+    let step = (maxPrice - minPrice) / 40;
+    
+    // Proteção contra loop infinito
+    if (step <= 0) step = 1;
     
     const labels = [];
     const data = [];
@@ -689,10 +764,15 @@ function renderPayoffChart() {
     for (let s = minPrice; s <= maxPrice; s += step) {
         labels.push('R$ ' + formatBR(s, 2));
         
+        // Cálculo do Payoff do Straddle Coberto
+        // 1. Ações: (S - S0) * Qty
+        // 2. Call Vendida: (PremioCall - max(S - Strike, 0)) * Qty
+        // 3. Put Vendida: (PremioPut - max(Strike - S, 0)) * Qty
+        // 4. SELIC: lftsReturn
+        
         let payoff = (s - currentPrice) * quantity;
-        payoff -= Math.max(0, s - strike) * quantity;
-        payoff -= Math.max(0, strike - s) * quantity;
-        payoff += (callPremium + putPremium) * quantity;
+        payoff += (callPremium - Math.max(0, s - strike)) * quantity;
+        payoff += (putPremium - Math.max(0, strike - s)) * quantity;
         payoff += lftsReturn;
         
         data.push(payoff);
@@ -702,72 +782,79 @@ function renderPayoffChart() {
         payoffChart.destroy();
     }
     
-    payoffChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Lucro/Prejuízo (R$)',
-                data: data,
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                fill: true,
-                tension: 0.2,
-                pointRadius: 0,
-                borderWidth: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                intersect: false,
-                mode: 'index',
+    try {
+        payoffChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Lucro/Prejuízo (R$)',
+                    data: data,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    fill: true,
+                    tension: 0.2,
+                    pointRadius: 0,
+                    borderWidth: 3
+                }]
             },
-            plugins: {
-                legend: {
-                    display: false
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return 'Resultado: R$ ' + formatBR(context.raw);
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Resultado: R$ ' + formatBR(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Preço da Ação no Vencimento'
+                        },
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Lucro / Prejuízo (R$)'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
                         }
                     }
                 }
-            },
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Preço da Ação no Vencimento'
-                    },
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        maxRotation: 45,
-                        minRotation: 45
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Lucro / Prejuízo (R$)'
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    }
-                }
             }
-        }
-    });
+        });
+        console.log('Gráfico de Payoff renderizado com sucesso.');
+    } catch (chartError) {
+        console.error('Erro ao instanciar Chart.js:', chartError);
+    }
 }
 
 // Inicializar quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', () => {
-    renderPayoffChart();
-});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    updateCalculations();
+} else {
+    document.addEventListener('DOMContentLoaded', updateCalculations);
+}
 
 /**
  * Salva a operação no banco de dados via API

@@ -6,7 +6,7 @@ class CoveredStraddleCalculator {
     private $quantity;
     private $lfts11Price;
 
-    public function __construct(int $quantity = 1000, float $lfts11Price = 100.00) {
+    public function __construct(int $quantity = 1000, float $lfts11Price = 146.00) {
         $this->quantity = $quantity;
         $this->lfts11Price = $lfts11Price;
     }

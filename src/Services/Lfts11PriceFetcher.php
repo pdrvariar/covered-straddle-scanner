@@ -84,6 +84,9 @@ class Lfts11PriceFetcher {
 
     private function tryOplab(): float {
         try {
+            if (!$this->apiClient) {
+                return 0;
+            }
             // Tentar buscar como ação/ETF
             $data = $this->apiClient->getStockData('LFTS11');
 
