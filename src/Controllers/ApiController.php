@@ -8,13 +8,7 @@ use App\Services\OPLabAPIClient;
 use App\Services\StrategyEngine;
 
 class ApiController {
-    private $db;
-    private $operationModel;
-
     public function __construct() {
-        $database = new Database();
-        $this->db = $database->connect();
-        $this->operationModel = new Operation($this->db);
     }
 
     public function scan(): void {
@@ -76,8 +70,7 @@ class ApiController {
         } catch (\Exception $e) {
             echo json_encode([
                 'success' => false,
-                'error' => $e->getMessage(),
-                'trace' => DEBUG_MODE ? $e->getTraceAsString() : null
+                'error' => $e->getMessage()
             ]);
         }
     }
@@ -95,7 +88,7 @@ class ApiController {
                 return;
             }
 
-            $operationId = $this->operationModel->save($data);
+            $operationId = Operation::save($data);
 
             echo json_encode([
                 'success' => true,
@@ -115,7 +108,7 @@ class ApiController {
         header('Content-Type: application/json');
 
         try {
-            $operation = $this->operationModel->findById($id);
+            $operation = Operation::getById($id);
 
             if (!$operation) {
                 echo json_encode([
@@ -148,7 +141,7 @@ class ApiController {
                 'max_days' => $_GET['max_days'] ?? 365
             ];
 
-            $operations = $this->operationModel->search($filters);
+            $operations = Operation::getAll($filters);
 
             echo json_encode([
                 'success' => true,

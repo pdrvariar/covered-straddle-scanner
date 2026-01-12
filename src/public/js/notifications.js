@@ -17,8 +17,10 @@ const notificationStyles = `
     display: flex;
     align-items: center;
     gap: 10px;
-    max-width: 400px;
+    max-width: 600px;
     min-width: 300px;
+    overflow-wrap: break-word;
+    word-break: break-all;
 }
 
 .notification-global.success {

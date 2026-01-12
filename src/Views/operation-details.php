@@ -611,6 +611,25 @@ $lfts11Data = $operation['lfts11_data'] ?? [
     }
 
     function saveOperation() {
+        // Fallback para funções de notificação caso não existam
+        const _showLoading = typeof showLoading === 'function' ? showLoading : (msg) => console.log('Loading: ' + msg);
+        const _hideLoading = typeof hideLoading === 'function' ? hideLoading : () => console.log('Hide loading');
+        const _showSuccess = typeof showSuccess === 'function' ? showSuccess : (msg) => showAlert(msg, 'success');
+        const _showError = typeof showError === 'function' ? showError : (msg) => showAlert(msg, 'danger');
+
+        // Função auxiliar para formatar data para o MySQL (YYYY-MM-DD)
+        const formatToMySQLDate = (dateStr) => {
+            if (!dateStr) return '';
+            // Se já estiver no formato YYYY-MM-DD, retorna como está
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+            // Se estiver no formato DD/MM/YYYY
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return dateStr;
+        };
+
         const data = <?= json_encode($operation) ?>;
 
         // Prepara os dados para envio
@@ -622,7 +641,7 @@ $lfts11Data = $operation['lfts11_data'] ?? [
             call_premium: data.call_premium || 0,
             put_symbol: data.put_symbol || '',
             put_premium: data.put_premium || 0,
-            expiration_date: data.expiration_date || '',
+            expiration_date: formatToMySQLDate(data.expiration_date),
             days_to_maturity: data.days_to_maturity || 0,
             initial_investment: data.initial_investment || 0,
             max_profit: data.max_profit || 0,
@@ -637,56 +656,67 @@ $lfts11Data = $operation['lfts11_data'] ?? [
         };
 
         // Mostrar loading global
-        showLoading('Salvando operação...');
+        _showLoading('Salvando operação...');
 
         // Usar a API via POST
         fetch('/?action=save', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
             },
             body: new URLSearchParams({
                 'operation': JSON.stringify(operationData)
             })
         })
             .then(response => {
-                // Verificar se é um redirecionamento
                 if (response.redirected) {
-                    hideLoading();
-                    showSuccess('Operação salva com sucesso! Redirecionando...');
+                    _hideLoading();
+                    _showSuccess('Operação salva com sucesso! Redirecionando...');
                     setTimeout(() => {
                         window.location.href = response.url;
                     }, 1500);
                     return null;
                 }
-                return response.text();
+                
+                // Tenta ler como texto primeiro para lidar com erros de PHP que quebram o JSON
+                return response.text().then(text => {
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('Resposta não é um JSON válido:', text);
+                        
+                        // Em desenvolvimento, mostrar o erro bruto na tela
+                        const debugInfo = text.substring(0, 1000) + (text.length > 1000 ? '...' : '');
+                        throw new Error('O servidor retornou uma resposta inválida: ' + debugInfo);
+                    }
+                });
             })
-            .then(text => {
-                hideLoading();
+            .then(result => {
+                if (!result) return; // Caso de redirecionamento
 
-                // Tentar extrair mensagem de sucesso
-                if (text.includes('success') || text.includes('Operação salva')) {
-                    showSuccess('Operação salva com sucesso!');
+                _hideLoading();
 
-                    // Se houver ID na resposta, redirecionar
-                    const match = text.match(/id=(\d+)/);
-                    if (match) {
+                if (result.success) {
+                    _showSuccess(result.message || 'Operação salva com sucesso!');
+                    
+                    const id = result.id || (result.data && result.data.id);
+                    if (id) {
                         setTimeout(() => {
-                            window.location.href = '/?action=details&id=' + match[1];
+                            window.location.href = '/?action=details&id=' + id;
                         }, 2000);
                     } else {
-                        // Recarregar após 2 segundos
                         setTimeout(() => location.reload(), 2000);
                     }
                 } else {
-                    showError('Erro ao salvar operação. Verifique o console para mais detalhes.');
-                    console.log('Resposta do servidor:', text);
+                    _showError(result.message || 'Erro ao salvar operação.');
+                    console.log('Resposta do servidor:', result);
                 }
             })
             .catch(error => {
-                hideLoading();
+                _hideLoading();
                 console.error('Erro:', error);
-                showError('Erro de conexão ao salvar operação.');
+                _showError(error.message || 'Erro de conexão ou resposta inválida do servidor.');
             });
     }
 

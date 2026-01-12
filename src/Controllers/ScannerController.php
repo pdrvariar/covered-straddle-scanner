@@ -110,7 +110,7 @@ class ScannerController {
         if ($operationId) {
             // Load from database
             $operationModel = new Operation($this->db);
-            $operation = $operationModel->findById($operationId);
+            $operation = Operation::getById($operationId);
 
             // Verificar e padronizar as chaves
             if ($operation && isset($operation['strike_price'])) {
@@ -138,62 +138,69 @@ class ScannerController {
     }
     public function save() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Obtém os dados do POST (que vêm como JSON string)
+            // Obtém os dados do POST
             $jsonData = $_POST['operation'] ?? '';
+            
+            error_log("Tentativa de salvar operação via AJAX. Dados recebidos: " . (empty($jsonData) ? 'vazio' : 'contém dados'));
 
             if (!empty($jsonData)) {
                 // Decodifica o JSON
                 $operationData = json_decode($jsonData, true);
 
                 if (is_array($operationData)) {
-                    // Adiciona campos padrão se não existirem
-                    $operationData['status'] = $operationData['status'] ?? 'active';
-                    $operationData['strategy_type'] = $operationData['strategy_type'] ?? 'covered_straddle';
-                    $operationData['risk_level'] = $operationData['risk_level'] ?? 'medium';
-                    $operationData['notes'] = $operationData['notes'] ?? 'Salvo via Scanner';
-
                     try {
+                        // Log para depuração
+                        error_log("Salvando operação para o símbolo: " . ($operationData['symbol'] ?? 'N/A'));
+                        
                         // Usa o método estático do modelo Operation
                         $operationId = Operation::save($operationData);
 
                         if ($operationId) {
+                            error_log("Operação salva com sucesso! ID: " . $operationId);
+                            
                             // Usar notificação flash
-                            add_flash_notification('Operação salva com sucesso! ID: ' . $operationId, 'success');
+                            \add_flash_notification('Operação salva com sucesso! ID: ' . $operationId, 'success');
 
                             // Retornar JSON para AJAX
                             if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
                                 strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                                json_response(['id' => $operationId], true, 'Operação salva com sucesso!');
+                                \json_response(['id' => $operationId], true, 'Operação salva com sucesso!');
                             } else {
                                 // Redirecionamento normal
                                 header('Location: /?action=details&id=' . $operationId);
                                 exit;
                             }
                         } else {
-                            throw new Exception('Não foi possível obter o ID da operação.');
+                            throw new \Exception('O banco de dados não retornou o ID da operação.');
                         }
                     } catch (\Exception $e) {
-                        $errorMsg = 'Erro ao salvar operação: ' . $e->getMessage();
+                        $errorMsg = 'Erro no processamento do banco de dados: ' . $e->getMessage();
                         error_log($errorMsg);
 
                         if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
                             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                            json_response([], false, $errorMsg);
+                            \json_response([], false, $errorMsg);
                         } else {
-                            add_flash_notification($errorMsg, 'error');
+                            \add_flash_notification($errorMsg, 'error');
                             header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '/?action=scan'));
                             exit;
                         }
                     }
+                } else {
+                    $errorMsg = 'O formato dos dados da operação é inválido (JSON malformado).';
+                    error_log($errorMsg);
+                    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                        strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                        \json_response([], false, $errorMsg);
+                    }
                 }
-            }
-
-            $errorMsg = 'Dados da operação inválidos ou não recebidos.';
-            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                json_response([], false, $errorMsg);
             } else {
-                add_flash_notification($errorMsg, 'error');
+                $errorMsg = 'Nenhum dado de operação foi recebido no POST.';
+                error_log($errorMsg);
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                    \json_response([], false, $errorMsg);
+                }
             }
         }
 
