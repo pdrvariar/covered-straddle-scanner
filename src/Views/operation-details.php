@@ -85,7 +85,7 @@ include __DIR__ . '/layout/header.php';
                                     <div class="py-2">
                                         <small class="text-muted d-block text-uppercase mb-1">Retorno</small>
                                         <h2 class="h3 fw-bold text-success mb-0">
-                                            <?= number_format($operation['profit_percent'], 2, ',', '.') ?>%
+                                            <span id="resumo-retorno"><?= number_format($operation['profit_percent'], 2, ',', '.') ?></span>%
                                         </h2>
                                         <small class="text-muted">Total período</small>
                                     </div>
@@ -94,7 +94,7 @@ include __DIR__ . '/layout/header.php';
                                     <div class="py-2">
                                         <small class="text-muted d-block text-uppercase mb-1">Mensal</small>
                                         <h2 class="h3 fw-bold text-info mb-0">
-                                            <?= number_format($operation['monthly_profit_percent'] ?? 0, 2, ',', '.') ?>%
+                                            <span id="resumo-mensal"><?= number_format($operation['monthly_profit_percent'] ?? 0, 2, ',', '.') ?></span>%
                                         </h2>
                                         <small class="text-muted">Projeção mensal</small>
                                     </div>
@@ -103,7 +103,7 @@ include __DIR__ . '/layout/header.php';
                                     <div class="py-2">
                                         <small class="text-muted d-block text-uppercase mb-1">Break-even</small>
                                         <h2 class="h3 fw-bold text-warning mb-0">
-                                            R$ <?= number_format($bep, 2, ',', '.') ?>
+                                            R$ <span id="resumo-bep"><?= number_format($bep, 2, ',', '.') ?></span>
                                         </h2>
                                         <small class="text-muted">Preço da ação</small>
                                     </div>
@@ -169,17 +169,20 @@ include __DIR__ . '/layout/header.php';
                                 <p class="mb-1">
                                     <strong><?= htmlspecialchars($operation['call_symbol'] ?? 'N/A') ?></strong>
                                 </p>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <small>Prêmio: R$ <?= number_format($operation['call_premium'], 2, ',', '.') ?></small>
+                                <div class="row align-items-center">
+                                    <div class="col-7">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">R$</span>
+                                            <input type="number" step="0.01" class="form-control fw-bold" id="input-call-premium" value="<?= $operation['call_premium'] ?>" oninput="updateCalculations()">
+                                        </div>
                                     </div>
-                                    <div class="col-6">
+                                    <div class="col-5">
                                         <small>Strike: R$ <?= number_format($operation['strike_price'], 2, ',', '.') ?></small>
                                     </div>
                                 </div>
                                 <div class="mt-2">
                                     <small>Receita Total:
-                                        <strong>R$ <?= number_format($operation['call_premium'] * $operation['quantity'], 2, ',', '.') ?></strong>
+                                        <strong>R$ <span id="call-total-revenue"><?= number_format($operation['call_premium'] * $operation['quantity'], 2, ',', '.') ?></span></strong>
                                     </small>
                                 </div>
                             </div>
@@ -192,17 +195,20 @@ include __DIR__ . '/layout/header.php';
                                 <p class="mb-1">
                                     <strong><?= htmlspecialchars($operation['put_symbol'] ?? 'N/A') ?></strong>
                                 </p>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <small>Prêmio: R$ <?= number_format($operation['put_premium'], 2, ',', '.') ?></small>
+                                <div class="row align-items-center">
+                                    <div class="col-7">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">R$</span>
+                                            <input type="number" step="0.01" class="form-control fw-bold" id="input-put-premium" value="<?= $operation['put_premium'] ?>" oninput="updateCalculations()">
+                                        </div>
                                     </div>
-                                    <div class="col-6">
+                                    <div class="col-5">
                                         <small>Strike: R$ <?= number_format($operation['strike_price'], 2, ',', '.') ?></small>
                                     </div>
                                 </div>
                                 <div class="mt-2">
                                     <small>Receita Total:
-                                        <strong>R$ <?= number_format($operation['put_premium'] * $operation['quantity'], 2, ',', '.') ?></strong>
+                                        <strong>R$ <span id="put-total-revenue"><?= number_format($operation['put_premium'] * $operation['quantity'], 2, ',', '.') ?></span></strong>
                                     </small>
                                 </div>
                             </div>
@@ -210,7 +216,7 @@ include __DIR__ . '/layout/header.php';
                             <div class="p-3 bg-light rounded mt-3">
                                 <small class="text-muted d-block">Prêmios Recebidos</small>
                                 <h5 class="mb-0 text-warning">
-                                    R$ <?= number_format($totalPremiums, 2, ',', '.') ?>
+                                    R$ <span id="total-premiums-badge"><?= number_format($totalPremiums, 2, ',', '.') ?></span>
                                 </h5>
                                 <small>Reduz o investimento inicial</small>
                             </div>
@@ -299,7 +305,7 @@ include __DIR__ . '/layout/header.php';
 
                                 <div class="investment-item d-flex justify-content-between">
                                     <span>Prêmios Recebidos (CALL + PUT):</span>
-                                    <span class="text-success">+ R$ <?= number_format($totalPremiums, 2, ',', '.') ?></span>
+                                    <span class="text-success">+ R$ <span id="total-premiums-financeira"><?= number_format($totalPremiums, 2, ',', '.') ?></span></span>
                                 </div>
 
                                 <div class="investment-item d-flex justify-content-between">
@@ -311,17 +317,17 @@ include __DIR__ . '/layout/header.php';
 
                                 <div class="investment-item d-flex justify-content-between">
                                     <strong>Investimento Líquido Inicial:</strong>
-                                    <strong class="text-primary">R$ <?= number_format($operation['initial_investment'], 2, ',', '.') ?></strong>
+                                    <strong class="text-primary">R$ <span id="initial-investment"><?= number_format($operation['initial_investment'], 2, ',', '.') ?></span></strong>
                                 </div>
 
                                 <div class="investment-item d-flex justify-content-between">
                                     <strong>Lucro Máximo Esperado:</strong>
-                                    <strong class="text-success">R$ <?= number_format($operation['max_profit'], 2, ',', '.') ?></strong>
+                                    <strong class="text-success">R$ <span id="max-profit"><?= number_format($operation['max_profit'], 2, ',', '.') ?></span></strong>
                                 </div>
 
                                 <div class="investment-item d-flex justify-content-between">
                                     <strong>Prejuízo Máximo:</strong>
-                                    <strong class="text-danger">R$ <?= number_format($operation['max_loss'], 2, ',', '.') ?></strong>
+                                    <strong class="text-danger">R$ <span id="max-loss"><?= number_format($operation['max_loss'], 2, ',', '.') ?></span></strong>
                                 </div>
                             </div>
 
@@ -365,7 +371,7 @@ include __DIR__ . '/layout/header.php';
                                         $premiumYield = ($totalPremiums / ($stockInvestment + ($operation['lfts11_investment'] ?? 0))) * 100;
                                         ?>
                                         <h4 class="text-warning mb-0">
-                                            <?= number_format($premiumYield, 2, ',', '.') ?>%
+                                            <span id="premium-yield"><?= number_format($premiumYield, 2, ',', '.') ?></span>%
                                         </h4>
                                         <small>Retorno dos prêmios</small>
                                     </div>
@@ -375,7 +381,7 @@ include __DIR__ . '/layout/header.php';
                                     <div class="mb-3">
                                         <small class="text-muted d-block">Retorno Anualizado</small>
                                         <h4 class="text-primary mb-0">
-                                            <?= number_format($operation['annual_profit_percent'] ?? 0, 2, ',', '.') ?>%
+                                            <span id="annual-profit"><?= number_format($operation['annual_profit_percent'] ?? 0, 2, ',', '.') ?></span>%
                                         </h4>
                                         <small>Projeção anual</small>
                                     </div>
@@ -396,11 +402,11 @@ include __DIR__ . '/layout/header.php';
 
                             <div class="mt-3">
                                 <h6>Pontos de Equilíbrio (BEP):</h6>
-                                <div class="d-flex flex-wrap gap-2">
+                                <div id="breakevens-list" class="d-flex flex-wrap gap-2">
                                     <?php if (!empty($operation['breakevens'])): ?>
-                                        <?php foreach ($operation['breakevens'] as $bep): ?>
+                                        <?php foreach ($operation['breakevens'] as $bep_val): ?>
                                             <span class="badge bg-info">
-                                                    R$ <?= number_format($bep, 2, ',', '.') ?>
+                                                    R$ <?= number_format($bep_val, 2, ',', '.') ?>
                                                 </span>
                                         <?php endforeach; ?>
                                     <?php else: ?>
@@ -514,6 +520,30 @@ include __DIR__ . '/layout/header.php';
                 </div>
             </div>
 
+            <!-- Gráfico de Payoff -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card detail-card">
+                        <div class="card-header bg-primary text-white detail-card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-area me-2"></i>
+                                Gráfico de Payoff no Vencimento
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div style="height: 400px; position: relative;">
+                                <canvas id="payoffChart"></canvas>
+                            </div>
+                            <div class="mt-3 text-center">
+                                <small class="text-muted">
+                                    Este gráfico mostra o resultado financeiro projetado (Lucro/Prejuízo) da operação baseado no preço da ação no dia do vencimento.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Botões de Ação -->
             <div class="d-flex justify-content-between mt-4">
                 <div>
@@ -534,11 +564,210 @@ include __DIR__ . '/layout/header.php';
     </div>
 </div>
 
+<!-- Incluir Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
 /**
  * Dados da operação injetados pelo PHP
  */
 const operationData = <?= json_encode($operation) ?>;
+
+/**
+ * Variável global para o gráfico
+ */
+let payoffChart = null;
+
+/**
+ * Formata número para moeda/decimal brasileiro
+ */
+function formatBR(val, decimals = 2) {
+    return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+    }).format(val);
+}
+
+/**
+ * Atualiza todos os cálculos quando os prêmios mudam
+ */
+function updateCalculations() {
+    const callPremium = parseFloat(document.getElementById('input-call-premium').value) || 0;
+    const putPremium = parseFloat(document.getElementById('input-put-premium').value) || 0;
+    const quantity = operationData.quantity;
+    const strike = operationData.strike_price;
+    const currentPrice = operationData.current_price;
+    const lftsInvestment = operationData.lfts11_investment || 0;
+    const lftsReturn = operationData.lfts11_return || 0;
+    const stockInvestment = currentPrice * quantity;
+
+    // Atualizar objeto operationData para persistência/exportação
+    operationData.call_premium = callPremium;
+    operationData.put_premium = putPremium;
+
+    // Cálculos Básicos
+    const callTotalRevenue = callPremium * quantity;
+    const putTotalRevenue = putPremium * quantity;
+    const totalPremiums = (callPremium + putPremium) * quantity;
+    
+    // Atualizar no DOM
+    document.getElementById('call-total-revenue').innerText = formatBR(callTotalRevenue);
+    document.getElementById('put-total-revenue').innerText = formatBR(putTotalRevenue);
+    document.getElementById('total-premiums-badge').innerText = formatBR(totalPremiums);
+    document.getElementById('total-premiums-financeira').innerText = formatBR(totalPremiums);
+
+    // Investimento Líquido Inicial
+    const initialInvestment = stockInvestment + lftsInvestment - totalPremiums;
+    operationData.initial_investment = initialInvestment;
+    document.getElementById('initial-investment').innerText = formatBR(initialInvestment);
+
+    // Lucro Máximo (quando S_T >= Strike)
+    const maxProfit = ((strike - currentPrice) * quantity) + totalPremiums + lftsReturn;
+    operationData.max_profit = maxProfit;
+    document.getElementById('max-profit').innerText = formatBR(maxProfit);
+
+    // Lucro %
+    const profitPercent = (maxProfit / initialInvestment) * 100;
+    operationData.profit_percent = profitPercent;
+    document.getElementById('resumo-retorno').innerText = formatBR(profitPercent);
+
+    // Mensal e Anual (Proporcional)
+    const days = operationData.days_to_maturity || 30;
+    const monthlyProfit = (profitPercent / days) * 30;
+    const annualProfit = (profitPercent / days) * 365;
+    
+    operationData.monthly_profit_percent = monthlyProfit;
+    operationData.annual_profit_percent = annualProfit;
+    
+    document.getElementById('resumo-mensal').innerText = formatBR(monthlyProfit);
+    document.getElementById('annual-profit').innerText = formatBR(annualProfit);
+
+    // Yield dos Prêmios
+    const premiumYield = (totalPremiums / (stockInvestment + lftsInvestment)) * 100;
+    document.getElementById('premium-yield').innerText = formatBR(premiumYield);
+
+    // BEP (Ponto de Equilíbrio)
+    const bep = (currentPrice + strike - (totalPremiums / quantity) - (lftsReturn / quantity)) / 2;
+    document.getElementById('resumo-bep').innerText = formatBR(bep);
+    
+    // Atualizar lista de BEPs
+    const breakevensList = document.getElementById('breakevens-list');
+    breakevensList.innerHTML = `<span class="badge bg-info">R$ ${formatBR(bep)}</span>`;
+    operationData.breakevens = [bep];
+
+    // Perda Máxima (Ação a zero)
+    const maxLoss = ((-currentPrice - strike) * quantity) + totalPremiums + lftsReturn;
+    operationData.max_loss = Math.abs(maxLoss);
+    document.getElementById('max-loss').innerText = formatBR(Math.abs(maxLoss));
+
+    // Renderizar Gráfico
+    renderPayoffChart();
+}
+
+/**
+ * Renderiza o gráfico de payoff usando Chart.js
+ */
+function renderPayoffChart() {
+    const canvas = document.getElementById('payoffChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const strike = operationData.strike_price;
+    const currentPrice = operationData.current_price;
+    const quantity = operationData.quantity;
+    const callPremium = parseFloat(operationData.call_premium) || 0;
+    const putPremium = parseFloat(operationData.put_premium) || 0;
+    const lftsReturn = operationData.lfts11_return || 0;
+    
+    const minPrice = Math.max(0, currentPrice * 0.8);
+    const maxPrice = currentPrice * 1.2;
+    const step = (maxPrice - minPrice) / 40;
+    
+    const labels = [];
+    const data = [];
+    
+    for (let s = minPrice; s <= maxPrice; s += step) {
+        labels.push('R$ ' + formatBR(s, 2));
+        
+        let payoff = (s - currentPrice) * quantity;
+        payoff -= Math.max(0, s - strike) * quantity;
+        payoff -= Math.max(0, strike - s) * quantity;
+        payoff += (callPremium + putPremium) * quantity;
+        payoff += lftsReturn;
+        
+        data.push(payoff);
+    }
+    
+    if (payoffChart) {
+        payoffChart.destroy();
+    }
+    
+    payoffChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Lucro/Prejuízo (R$)',
+                data: data,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                fill: true,
+                tension: 0.2,
+                pointRadius: 0,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index',
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Resultado: R$ ' + formatBR(context.raw);
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Preço da Ação no Vencimento'
+                    },
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Lucro / Prejuízo (R$)'
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Inicializar quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+    renderPayoffChart();
+});
 
 /**
  * Salva a operação no banco de dados via API
