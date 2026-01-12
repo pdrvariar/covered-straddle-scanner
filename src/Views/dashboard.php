@@ -1,71 +1,7 @@
-<!-- Atualize a navbar na sidebar para incluir o link de Operações -->
-<nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-    <div class="position-sticky pt-3">
-        <div class="text-center mb-4">
-            <h2 class="text-white mb-0">📊</h2>
-            <h4 class="text-white mt-2">Covered Straddle</h4>
-            <p class="text-muted small">Scanner de Opções</p>
-        </div>
-
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link active" href="/">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/?action=scan">
-                    <i class="fas fa-search me-2"></i>
-                    Scanner
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/?action=operations">
-                    <i class="fas fa-history me-2"></i>
-                    Operações
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="fas fa-chart-line me-2"></i>
-                    Análises
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="fas fa-cog me-2"></i>
-                    Configurações
-                </a>
-            </li>
-        </ul>
-
-        <hr class="text-white-50 my-4">
-
-        <!-- Quick Stats -->
-        <div class="text-white-50 small">
-            <h6 class="text-white mb-3">Estatísticas Rápidas</h6>
-            <div class="d-flex justify-content-between mb-2">
-                <span>Operações Hoje:</span>
-                <span class="text-white"><?= $stats['today_ops'] ?? 0 ?></span>
-            </div>
-            <div class="d-flex justify-content-between mb-2">
-                <span>Lucro Médio:</span>
-                <span class="text-success"><?= ($stats['avg_profit'] ?? 0) > 0 ? '+' : '' ?><?= $stats['avg_profit'] ?? 0 ?>%</span>
-            </div>
-            <div class="d-flex justify-content-between">
-                <span>Taxa SELIC:</span>
-                <span class="text-info"><?= $stats['selic'] ?? '13.75' ?>%</span>
-            </div>
-        </div>
-    </div>
-</nav>
-
-<!-- Main Content -->
-<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-    <!-- Header -->
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Dashboard</h1>
+<!-- Conteúdo do Dashboard -->
+<div class="pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
+            <h1 class="h2">Dashboard</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group me-2">
                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="location.href='/?action=scan'">
@@ -234,4 +170,7 @@
             </div>
         </div>
     </div>
-</main>
+
+<?php
+// O sidebar agora é incluído pelo header.php
+?>

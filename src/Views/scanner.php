@@ -1,133 +1,33 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner de Opções - Covered Straddle</title>
+<?php
+// Define variáveis para o header
+$page_title = 'Scanner de Opções - Covered Straddle';
 
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+// Incluir header
+include __DIR__ . '/layout/header.php';
+?>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <!-- Custom CSS -->
-    <link href="/css/style.css" rel="stylesheet">
-
-    <style>
-        .scanner-header {
-            background: linear-gradient(135deg, #1f77b4 0%, #2c3e50 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-        }
-
-        .param-card {
-            background: white;
-            border-radius: 10px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 1.5rem;
-            border: 1px solid #eaeaea;
-        }
-
-        .param-card .card-title {
-            color: #2c3e50;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #f0f2f6;
-            padding-bottom: 0.5rem;
-        }
-
-        .info-badge {
-            background-color: #e8f4fd;
-            color: #1f77b4;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            display: inline-block;
-            margin-bottom: 1rem;
-        }
-
-        .ticker-tag {
-            display: inline-block;
-            background: #e9ecef;
-            color: #495057;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            margin: 0.25rem;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .ticker-tag:hover {
-            background: #dee2e6;
-            transform: scale(1.05);
-        }
-
-        .scanner-progress {
-            height: 6px;
-            background-color: #e9ecef;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .scanner-progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #1f77b4 0%, #00aa00 100%);
-            border-radius: 3px;
-            transition: width 0.3s ease;
-        }
-
-        .sort-option {
-            cursor: pointer;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            transition: all 0.2s;
-        }
-
-        .sort-option.active {
-            background-color: #1f77b4;
-            color: white;
-        }
-
-        .sort-option:hover:not(.active) {
-            background-color: #f0f2f6;
-        }
-    </style>
-</head>
-<body>
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar (included from layout) -->
-        <?php include __DIR__ . '/layout/sidebar.php'; ?>
-
-        <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-            <!-- Header -->
-            <div class="scanner-header">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h1 class="h2 mb-3">
-                            <i class="fas fa-search me-2"></i>
-                            Covered Straddle Scanner
-                        </h1>
-                        <p class="mb-0 opacity-75">
-                            Analise múltiplos ativos simultaneamente e encontre as melhores oportunidades de operações de straddle coberto.
-                            <strong>Resultados automaticamente ordenados do maior para o menor lucro.</strong>
-                        </p>
-                    </div>
-                    <div class="col-md-4 text-end">
-                            <span class="info-badge">
-                                <i class="fas fa-sort-amount-down-alt me-1"></i>
-                                Ordenação: Maior Lucro
-                            </span>
-                    </div>
+    <div class="py-4">
+        <!-- Header -->
+        <div class="page-header-gradient">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="h2 mb-3">
+                        <i class="fas fa-search me-2"></i>
+                        Covered Straddle Scanner
+                    </h1>
+                    <p class="mb-0 opacity-75">
+                        Analise múltiplos ativos simultaneamente e encontre as melhores oportunidades de operações de straddle coberto.
+                        <strong>Resultados automaticamente ordenados do maior para o menor lucro.</strong>
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                        <span class="info-badge">
+                            <i class="fas fa-sort-amount-down-alt me-1"></i>
+                            Ordenação: Maior Lucro
+                        </span>
                 </div>
             </div>
+        </div>
 
             <!-- Error/Success Messages -->
             <?php if (isset($_SESSION['error'])): ?>
@@ -204,7 +104,7 @@
                                           name="tickers"
                                           rows="5"
                                           required
-                                          placeholder="Insira os tickers separados por vírgula"><?= htmlspecialchars($defaultTickers) ?></textarea>
+                                          placeholder="Insira os tickers separados por vírgula"><?= htmlspecialchars($defaultTickers ?? 'PETR4,VALE3,ITUB4,BBAS3,BBDC4') ?></textarea>
                                 <div class="form-text">
                                     <small>
                                         <i class="fas fa-lightbulb me-1"></i>
@@ -461,14 +361,16 @@
                     </div>
                 </div>
             </div>
-        </main>
     </div>
-</div>
 
-<!-- Bootstrap JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<?php
+// O sidebar agora é incluído pelo header.php
+?>
 
-<!-- Custom JS -->
+<?php
+// Passar o JavaScript da página para o footer
+ob_start();
+?>
 <script>
     // Toggle token visibility
     document.getElementById('toggleToken').addEventListener('click', function() {
@@ -552,22 +454,26 @@
         const progressBar = document.getElementById('progressBar');
 
         // Show progress bar
-        progressContainer.classList.remove('d-none');
+        if (progressContainer) progressContainer.classList.remove('d-none');
 
         // Disable button and show loading state
-        scanButton.disabled = true;
-        scanButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Analisando...';
+        if (scanButton) {
+            scanButton.disabled = true;
+            scanButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Analisando...';
+        }
 
         // Simulate progress
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 5;
-            progressBar.style.width = Math.min(progress, 90) + '%';
+        if (progressBar) {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                progressBar.style.width = Math.min(progress, 90) + '%';
 
-            if (progress >= 90) {
-                clearInterval(interval);
-            }
-        }, 100);
+                if (progress >= 90) {
+                    clearInterval(interval);
+                }
+            }, 100);
+        }
 
         // Allow form submission
         return true;
@@ -577,8 +483,12 @@
     document.addEventListener('DOMContentLoaded', function() {
         const today = new Date().toISOString().split('T')[0];
         const expirationInput = document.getElementById('expiration_date');
-        expirationInput.min = today;
+        if (expirationInput) expirationInput.min = today;
     });
 </script>
-</body>
-</html>
+<?php
+$page_js = ob_get_clean();
+
+// Incluir footer
+include __DIR__ . '/layout/footer.php';
+?>

@@ -29,60 +29,11 @@ $lfts11Data = $operation['lfts11_data'] ?? [
 ];
 ?>
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalhes da Operação - <?= htmlspecialchars($operation['symbol'] ?? 'Desconhecido') ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .detail-card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .detail-card-header {
-            border-radius: 10px 10px 0 0 !important;
-            padding: 1rem 1.5rem;
-        }
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        .profit-positive {
-            color: #28a745;
-        }
-        .profit-negative {
-            color: #dc3545;
-        }
-        .investment-breakdown {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1.5rem;
-        }
-        .investment-item {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #dee2e6;
-        }
-        .investment-item:last-child {
-            border-bottom: none;
-        }
-        .guarantee-badge {
-            background: linear-gradient(135deg, #1f77b4 0%, #2c3e50 100%);
-            color: white;
-        }
-    </style>
-</head>
-<body class="bg-light">
+<?php
+include __DIR__ . '/layout/header.php';
+?>
 <div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
-<div class="container-fluid">
-    <div class="row">
-        <?php include __DIR__ . '/layout/sidebar.php'; ?>
-
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+<div class="py-4">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
@@ -91,21 +42,21 @@ $lfts11Data = $operation['lfts11_data'] ?? [
                 </ol>
             </nav>
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="page-header-gradient d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="mb-1">Detalhes da Operação</h1>
-                    <h3 class="text-primary"><?= htmlspecialchars($operation['symbol'] ?? 'Desconhecido') ?></h3>
-                    <p class="text-muted mb-0">
+                    <h1 class="h2 mb-1">Detalhes da Operação</h1>
+                    <h3 class="text-white-50 h4 mb-2"><?= htmlspecialchars($operation['symbol'] ?? 'Desconhecido') ?></h3>
+                    <p class="mb-0 opacity-75">
                         <i class="fas fa-calendar me-1"></i>
                         Vencimento: <?= htmlspecialchars($operation['expiration_date'] ?? 'N/A') ?>
                         (<?= $operation['days_to_maturity'] ?? 0 ?> dias)
                     </p>
                 </div>
-                <div>
-                    <button class="btn btn-success" onclick="saveOperation()">
-                        <i class="fas fa-save me-2"></i>Salvar Operação
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success shadow-sm" onclick="saveOperation()">
+                        <i class="fas fa-save me-2"></i>Salvar
                     </button>
-                    <a href="/?action=results" class="btn btn-outline-primary">
+                    <a href="/?action=results" class="btn btn-light shadow-sm">
                         <i class="fas fa-arrow-left me-2"></i>Voltar
                     </a>
                 </div>
@@ -114,7 +65,7 @@ $lfts11Data = $operation['lfts11_data'] ?? [
             <!-- Resumo da Operação -->
             <div class="row mb-4">
                 <div class="col-md-12">
-                    <div class="card detail-card">
+                    <div class="card">
                         <div class="card-header bg-primary text-white detail-card-header">
                             <h5 class="card-title mb-0">
                                 <i class="fas fa-chart-pie me-2"></i>
@@ -123,38 +74,38 @@ $lfts11Data = $operation['lfts11_data'] ?? [
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-3 text-center">
-                                    <div class="mb-3">
-                                        <small class="text-muted d-block">Quantidade de Lotes</small>
-                                        <h2 class="metric-value mb-0"><?= number_format($operation['quantity'] / 100, 1, ',', '.') ?></h2>
-                                        <small><?= number_format($operation['quantity'], 0, ',', '.') ?> ações</small>
+                                <div class="col-md-3 text-center border-end">
+                                    <div class="py-2">
+                                        <small class="text-muted d-block text-uppercase mb-1">Quantidade</small>
+                                        <h2 class="h3 fw-bold mb-0"><?= number_format($operation['quantity'] / 100, 1, ',', '.') ?></h2>
+                                        <small class="text-muted"><?= number_format($operation['quantity'], 0, ',', '.') ?> ações</small>
                                     </div>
                                 </div>
-                                <div class="col-md-3 text-center">
-                                    <div class="mb-3">
-                                        <small class="text-muted d-block">Retorno Esperado</small>
-                                        <h2 class="metric-value profit-positive mb-0">
+                                <div class="col-md-3 text-center border-end">
+                                    <div class="py-2">
+                                        <small class="text-muted d-block text-uppercase mb-1">Retorno</small>
+                                        <h2 class="h3 fw-bold text-success mb-0">
                                             <?= number_format($operation['profit_percent'], 2, ',', '.') ?>%
                                         </h2>
-                                        <small>Total do período</small>
+                                        <small class="text-muted">Total período</small>
                                     </div>
                                 </div>
-                                <div class="col-md-3 text-center">
-                                    <div class="mb-3">
-                                        <small class="text-muted d-block">Retorno Mensalizado</small>
-                                        <h2 class="metric-value text-info mb-0">
+                                <div class="col-md-3 text-center border-end">
+                                    <div class="py-2">
+                                        <small class="text-muted d-block text-uppercase mb-1">Mensal</small>
+                                        <h2 class="h3 fw-bold text-info mb-0">
                                             <?= number_format($operation['monthly_profit_percent'] ?? 0, 2, ',', '.') ?>%
                                         </h2>
-                                        <small>Projeção mensal</small>
+                                        <small class="text-muted">Projeção mensal</small>
                                     </div>
                                 </div>
                                 <div class="col-md-3 text-center">
-                                    <div class="mb-3">
-                                        <small class="text-muted d-block">Ponto de Equilíbrio</small>
-                                        <h2 class="metric-value text-warning mb-0">
+                                    <div class="py-2">
+                                        <small class="text-muted d-block text-uppercase mb-1">Break-even</small>
+                                        <h2 class="h3 fw-bold text-warning mb-0">
                                             R$ <?= number_format($bep, 2, ',', '.') ?>
                                         </h2>
-                                        <small>Preço da ação</small>
+                                        <small class="text-muted">Preço da ação</small>
                                     </div>
                                 </div>
                             </div>
@@ -167,8 +118,8 @@ $lfts11Data = $operation['lfts11_data'] ?? [
             <div class="row">
                 <!-- Card 1: Compra da Ação -->
                 <div class="col-md-4">
-                    <div class="card detail-card h-100">
-                        <div class="card-header bg-success text-white detail-card-header">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-success text-white">
                             <h5 class="card-title mb-0">
                                 <i class="fas fa-arrow-up me-2"></i>
                                 Compra da Ação
@@ -176,27 +127,27 @@ $lfts11Data = $operation['lfts11_data'] ?? [
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <small class="text-muted d-block">Ação</small>
+                                <small class="text-muted d-block text-uppercase small fw-bold">Ação</small>
                                 <h4 class="mb-0"><?= htmlspecialchars($operation['symbol'] ?? 'N/A') ?></h4>
                             </div>
                             <div class="mb-3">
-                                <small class="text-muted d-block">Preço por Ação</small>
-                                <p class="metric-value mb-0">
+                                <small class="text-muted d-block text-uppercase small fw-bold">Preço por Ação</small>
+                                <p class="h4 fw-bold mb-0">
                                     R$ <?= number_format($operation['current_price'], 2, ',', '.') ?>
                                 </p>
                             </div>
                             <div class="mb-3">
-                                <small class="text-muted d-block">Quantidade Total</small>
+                                <small class="text-muted d-block text-uppercase small fw-bold">Quantidade Total</small>
                                 <p class="mb-0">
                                     <strong><?= number_format($operation['quantity'], 0, ',', '.') ?></strong> ações
                                 </p>
                             </div>
-                            <div class="p-3 bg-light rounded">
-                                <small class="text-muted d-block">Investimento Total</small>
-                                <h5 class="mb-0 text-success">
+                            <div class="p-3 bg-light rounded border">
+                                <small class="text-muted d-block text-uppercase small fw-bold">Investimento Total</small>
+                                <h5 class="mb-0 text-success fw-bold">
                                     R$ <?= number_format($stockInvestment, 2, ',', '.') ?>
                                 </h5>
-                                <small><?= number_format($operation['quantity'] / 100, 1, ',', '.') ?> lotes padrão</small>
+                                <small class="text-muted"><?= number_format($operation['quantity'] / 100, 1, ',', '.') ?> lotes padrão</small>
                             </div>
                         </div>
                     </div>
@@ -204,8 +155,8 @@ $lfts11Data = $operation['lfts11_data'] ?? [
 
                 <!-- Card 2: Venda das Opções -->
                 <div class="col-md-4">
-                    <div class="card detail-card h-100">
-                        <div class="card-header bg-warning text-white detail-card-header">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-warning text-dark">
                             <h5 class="card-title mb-0">
                                 <i class="fas fa-hand-holding-usd me-2"></i>
                                 Venda das Opções
@@ -579,160 +530,11 @@ $lfts11Data = $operation['lfts11_data'] ?? [
                     </a>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
 </div>
 
-<!-- Bootstrap JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-    function showAlert(message, type = 'info') {
-        const alertContainer = document.getElementById('alertContainer');
-        const alertId = 'alert-' + Date.now();
-        const alertHtml = `
-        <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert" style="min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
-                <div>${message}</div>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    `;
-        alertContainer.insertAdjacentHTML('beforeend', alertHtml);
-
-        // Auto-remover após 5 segundos
-        setTimeout(() => {
-            const alertElement = document.getElementById(alertId);
-            if (alertElement) {
-                alertElement.remove();
-            }
-        }, 5000);
-    }
-
-    function saveOperation() {
-        // Fallback para funções de notificação caso não existam
-        const _showLoading = typeof showLoading === 'function' ? showLoading : (msg) => console.log('Loading: ' + msg);
-        const _hideLoading = typeof hideLoading === 'function' ? hideLoading : () => console.log('Hide loading');
-        const _showSuccess = typeof showSuccess === 'function' ? showSuccess : (msg) => showAlert(msg, 'success');
-        const _showError = typeof showError === 'function' ? showError : (msg) => showAlert(msg, 'danger');
-
-        // Função auxiliar para formatar data para o MySQL (YYYY-MM-DD)
-        const formatToMySQLDate = (dateStr) => {
-            if (!dateStr) return '';
-            // Se já estiver no formato YYYY-MM-DD, retorna como está
-            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-            // Se estiver no formato DD/MM/YYYY
-            const parts = dateStr.split('/');
-            if (parts.length === 3) {
-                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-            }
-            return dateStr;
-        };
-
-        const data = <?= json_encode($operation) ?>;
-
-        // Prepara os dados para envio
-        const operationData = {
-            symbol: data.symbol || '',
-            current_price: data.current_price || 0,
-            strike_price: data.strike_price || data.strike || 0,
-            call_symbol: data.call_symbol || '',
-            call_premium: data.call_premium || 0,
-            put_symbol: data.put_symbol || '',
-            put_premium: data.put_premium || 0,
-            expiration_date: formatToMySQLDate(data.expiration_date),
-            days_to_maturity: data.days_to_maturity || 0,
-            initial_investment: data.initial_investment || 0,
-            max_profit: data.max_profit || 0,
-            max_loss: data.max_loss || 0,
-            profit_percent: data.profit_percent || 0,
-            monthly_profit_percent: data.monthly_profit_percent || 0,
-            selic_annual: data.selic_annual || 0.1375,
-            status: 'active',
-            strategy_type: 'covered_straddle',
-            risk_level: 'medium',
-            notes: 'Operação salva via scanner'
-        };
-
-        // Mostrar loading global
-        _showLoading('Salvando operação...');
-
-        // Usar a API via POST
-        fetch('/?action=save', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: new URLSearchParams({
-                'operation': JSON.stringify(operationData)
-            })
-        })
-            .then(response => {
-                if (response.redirected) {
-                    _hideLoading();
-                    _showSuccess('Operação salva com sucesso! Redirecionando...');
-                    setTimeout(() => {
-                        window.location.href = response.url;
-                    }, 1500);
-                    return null;
-                }
-                
-                // Tenta ler como texto primeiro para lidar com erros de PHP que quebram o JSON
-                return response.text().then(text => {
-                    try {
-                        return JSON.parse(text);
-                    } catch (e) {
-                        console.error('Resposta não é um JSON válido:', text);
-                        
-                        // Em desenvolvimento, mostrar o erro bruto na tela
-                        const debugInfo = text.substring(0, 1000) + (text.length > 1000 ? '...' : '');
-                        throw new Error('O servidor retornou uma resposta inválida: ' + debugInfo);
-                    }
-                });
-            })
-            .then(result => {
-                if (!result) return; // Caso de redirecionamento
-
-                _hideLoading();
-
-                if (result.success) {
-                    _showSuccess(result.message || 'Operação salva com sucesso!');
-                    
-                    const id = result.id || (result.data && result.data.id);
-                    if (id) {
-                        setTimeout(() => {
-                            window.location.href = '/?action=details&id=' + id;
-                        }, 2000);
-                    } else {
-                        setTimeout(() => location.reload(), 2000);
-                    }
-                } else {
-                    _showError(result.message || 'Erro ao salvar operação.');
-                    console.log('Resposta do servidor:', result);
-                }
-            })
-            .catch(error => {
-                _hideLoading();
-                console.error('Erro:', error);
-                _showError(error.message || 'Erro de conexão ou resposta inválida do servidor.');
-            });
-    }
-
-    function exportOperation() {
-        const data = <?= json_encode($operation) ?>;
-        const jsonStr = JSON.stringify(data, null, 2);
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `straddle_${data.symbol}_${data.expiration_date}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-</script>
-</body>
-</html>
+<?php
+// O sidebar agora é incluído pelo header.php
+include __DIR__ . '/layout/footer.php';
+?>

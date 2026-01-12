@@ -1,130 +1,35 @@
 <?php
 $results = $_SESSION['scan_results'] ?? [];
 $params = $_SESSION['scan_params'] ?? [];
+
+// Define variáveis para o header
+$page_title = 'Resultados do Scanner - Covered Straddle';
+
+// Incluir header
+include __DIR__ . '/layout/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultados do Scanner - Covered Straddle</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .result-card {
-            transition: transform 0.2s;
-            border-left: 5px solid #1f77b4;
-            position: relative;
-            height: 100%;
-        }
-        .result-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .profit-high { border-left-color: #28a745; }
-        .profit-med { border-left-color: #ffc107; }
-        .profit-low { border-left-color: #dc3545; }
-        .ranking-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #ffc107;
-            color: #000;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .profit-badge {
-            font-size: 0.9rem;
-            padding: 0.25rem 0.5rem;
-        }
-        .lfts11-badge {
-            background: linear-gradient(135deg, #1f77b4 0%, #2c3e50 100%);
-            color: white;
-            font-size: 0.8rem;
-        }
-        .summary-card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border: none;
-            border-radius: 10px;
-        }
-        .quick-stats {
-            display: flex;
-            justify-content: space-between;
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        .stat-item {
-            text-align: center;
-        }
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        .stat-label {
-            font-size: 0.8rem;
-            color: #6c757d;
-        }
-        .profit-up { color: #28a745; }
-        .profit-down { color: #dc3545; }
-        .export-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .filter-badge {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .filter-badge:hover {
-            transform: scale(1.05);
-            opacity: 0.9;
-        }
-        .result-header {
-            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-        }
-    </style>
-</head>
-<body class="bg-light">
-<div class="container-fluid">
-    <div class="row">
-        <?php include __DIR__ . '/layout/sidebar.php'; ?>
-
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <!-- Cabeçalho -->
-            <div class="result-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1 class="h2 mb-2">
-                            <i class="fas fa-chart-line me-2"></i>
-                            Resultados do Scanner
-                        </h1>
-                        <p class="mb-0 opacity-75">
-                            Análise realizada em <?= date('d/m/Y H:i:s') ?>
-                        </p>
-                    </div>
-                    <div class="text-end">
-                            <span class="badge bg-info fs-6">
-                                <i class="fas fa-sort-amount-down me-1"></i>
-                                Ordenado por Lucro
-                            </span>
-                    </div>
+    <div class="py-4">
+        <!-- Cabeçalho -->
+        <div class="page-header-gradient">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-2">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Resultados do Scanner
+                    </h1>
+                    <p class="mb-0 opacity-75">
+                        Análise realizada em <?= date('d/m/Y H:i:s') ?>
+                    </p>
+                </div>
+                <div class="text-end">
+                        <span class="badge bg-white text-primary fs-6">
+                            <i class="fas fa-sort-amount-down me-1"></i>
+                            Ordenado por Lucro
+                        </span>
                 </div>
             </div>
+        </div>
 
             <!-- Estatísticas Rápidas -->
             <?php if (!empty($results)): ?>
@@ -440,19 +345,16 @@ $params = $_SESSION['scan_params'] ?? [];
                 </div>
             <?php endif; ?>
 
-            <!-- Botão de Exportação Fixo -->
-            <?php if (!empty($results)): ?>
-                <button class="btn btn-success export-btn" onclick="exportAllResults()" data-bs-toggle="tooltip" data-bs-placement="left" title="Exportar todos os resultados">
-                    <i class="fas fa-download me-2"></i> Exportar CSV
-                </button>
-            <?php endif; ?>
-        </main>
     </div>
-</div>
 
-<!-- Bootstrap JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<?php
+// O sidebar agora é incluído pelo header.php
+?>
 
+<?php
+// Passar o JavaScript da página para o footer
+ob_start();
+?>
 <script>
     // Filtros de resultados
     function filterResults(filterType) {
@@ -571,42 +473,19 @@ $params = $_SESSION['scan_params'] ?? [];
 
     // Função auxiliar para mostrar alertas
     function showAlert(message, type = 'info') {
-        // Remover alertas existentes
-        const existingAlerts = document.querySelectorAll('.custom-alert');
-        existingAlerts.forEach(alert => alert.remove());
-
-        // Criar novo alerta
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} custom-alert alert-dismissible fade show position-fixed`;
-        alertDiv.style.cssText = `
-                top: 20px;
-                right: 20px;
-                z-index: 1050;
-                min-width: 300px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            `;
-        alertDiv.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
-                    <div>${message}</div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-
-        document.body.appendChild(alertDiv);
-
-        // Auto-remover após 5 segundos
-        setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.remove();
-            }
-        }, 5000);
+        if (typeof showNotification === 'function') {
+            showNotification(message, type);
+        } else {
+            console.log(type + ': ' + message);
+        }
     }
 
     // Inicializar tooltips
     document.addEventListener('DOMContentLoaded', function() {
         const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-        tooltips.forEach(el => new bootstrap.Tooltip(el));
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            tooltips.forEach(el => new bootstrap.Tooltip(el));
+        }
     });
 
     // Adicionar funcionalidade de ordenação
@@ -614,6 +493,8 @@ $params = $_SESSION['scan_params'] ?? [];
 
     function sortResults(sortBy) {
         const grid = document.getElementById('resultsGrid');
+        if (!grid) return;
+        
         const items = Array.from(grid.querySelectorAll('.result-item'));
 
         items.sort((a, b) => {
@@ -662,5 +543,9 @@ $params = $_SESSION['scan_params'] ?? [];
         return sorts[sortBy] || 'Lucro';
     }
 </script>
-</body>
-</html>
+<?php
+$page_js = ob_get_clean();
+
+// Incluir footer
+include __DIR__ . '/layout/footer.php';
+?>

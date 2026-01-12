@@ -3,88 +3,38 @@
 $operations = $operations ?? [];
 $stats = $stats ?? [];
 $filters = $filters ?? [];
+
+// Define variáveis para o header
+$page_title = 'Operações - Covered Straddle Scanner';
+
+// Incluir header
+include __DIR__ . '/layout/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operações - Covered Straddle Scanner</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .operations-header {
-            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-        }
-        .filter-card {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .operation-card {
-            border-left: 4px solid #1f77b4;
-            margin-bottom: 1rem;
-            transition: all 0.3s;
-        }
-        .operation-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .status-badge {
-            font-size: 0.8rem;
-            padding: 0.25rem 0.75rem;
-        }
-        .profit-positive {
-            color: #28a745;
-        }
-        .profit-negative {
-            color: #dc3545;
-        }
-        .export-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-    </style>
-</head>
-<body class="bg-light">
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <?php include __DIR__ . '/layout/sidebar.php'; ?>
-
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <!-- Cabeçalho -->
-            <div class="operations-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1 class="h2 mb-2">
-                            <i class="fas fa-history me-2"></i>
-                            Operações Salvas
-                        </h1>
-                        <p class="mb-0 opacity-75">
-                            Histórico completo de todas as operações analisadas e salvas
-                        </p>
-                    </div>
-                    <div class="text-end">
-                        <span class="badge bg-info fs-6">
-                            <i class="fas fa-database me-1"></i>
-                            <?= count($operations) ?> operações
-                        </span>
-                    </div>
+    <div class="py-4">
+        <!-- Cabeçalho -->
+        <div class="page-header-gradient">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-2">
+                        <i class="fas fa-history me-2"></i>
+                        Operações Salvas
+                    </h1>
+                    <p class="mb-0 opacity-75">
+                        Histórico completo de todas as operações analisadas e salvas
+                    </p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-white text-primary fs-6">
+                        <i class="fas fa-database me-1"></i>
+                        <?= count($operations) ?> operações
+                    </span>
                 </div>
             </div>
+        </div>
 
             <!-- Filtros -->
-            <div class="filter-card">
+            <div class="filter-section">
                 <h5 class="mb-3">
                     <i class="fas fa-filter me-2"></i>
                     Filtros
@@ -275,38 +225,56 @@ $filters = $filters ?? [];
                     <i class="fas fa-download me-2"></i> Exportar CSV
                 </button>
             <?php endif; ?>
-        </main>
     </div>
-</div>
 
-<!-- Bootstrap JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<?php
+// O sidebar agora é incluído pelo header.php
+?>
 
+<?php
+// Passar o JavaScript da página para o footer
+ob_start();
+?>
 <script>
     // Função para excluir operação
     function deleteOperation(id) {
-        if (confirm('Tem certeza que deseja excluir esta operação?')) {
-            fetch('/api/operations/delete', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ operation_id: id })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Operação excluída com sucesso!');
-                        location.reload();
-                    } else {
-                        alert('Erro ao excluir operação: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro:', error);
-                    alert('Erro ao excluir operação.');
-                });
+        if (typeof confirmAction === 'function') {
+            confirmAction('Tem certeza que deseja excluir esta operação?', () => {
+                executeDelete(id);
+            });
+        } else if (confirm('Tem certeza que deseja excluir esta operação?')) {
+            executeDelete(id);
         }
+    }
+
+    function executeDelete(id) {
+        if (typeof showLoading === 'function') showLoading('Excluindo operação...');
+        
+        fetch('/api/operations/delete', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ operation_id: id })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (typeof hideLoading === 'function') hideLoading();
+                if (data.success) {
+                    if (typeof showSuccess === 'function') showSuccess('Operação excluída com sucesso!');
+                    else alert('Operação excluída com sucesso!');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    if (typeof showError === 'function') showError('Erro ao excluir operação: ' + data.message);
+                    else alert('Erro ao excluir operação: ' + data.message);
+                }
+            })
+            .catch(error => {
+                if (typeof hideLoading === 'function') hideLoading();
+                console.error('Erro:', error);
+                if (typeof showError === 'function') showError('Erro ao excluir operação.');
+                else alert('Erro ao excluir operação.');
+            });
     }
 
     // Função para exportar operações
@@ -317,8 +285,14 @@ $filters = $filters ?? [];
     // Inicializar tooltips
     document.addEventListener('DOMContentLoaded', function() {
         const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-        tooltips.forEach(el => new bootstrap.Tooltip(el));
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            tooltips.forEach(el => new bootstrap.Tooltip(el));
+        }
     });
 </script>
-</body>
-</html>
+<?php
+$page_js = ob_get_clean();
+
+// Incluir footer
+include __DIR__ . '/layout/footer.php';
+?>

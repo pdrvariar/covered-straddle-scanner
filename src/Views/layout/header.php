@@ -58,63 +58,28 @@ $base_url .= "://" . $_SERVER['HTTP_HOST'];
 </head>
 <body>
 <!-- Navigation -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container-fluid">
-        <a class="navbar-brand" href="/">
+        <a class="navbar-brand-modern" href="/">
             <i class="fas fa-chart-line me-2"></i>
-            Covered Straddle Scanner
+            Covered Straddle
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : '' ?>" href="/">
-                        <i class="fas fa-home me-1"></i> Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <?= ($_GET['action'] ?? '') == 'scan' ? 'active' : '' ?>" href="/?action=scan">
-                        <i class="fas fa-search me-1"></i> Scanner
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <?= ($_GET['action'] ?? '') == 'operations' ? 'active' : '' ?>" href="/?action=operations">
-                        <i class="fas fa-history me-1"></i> Operações
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <?= ($_GET['action'] ?? '') == 'results' ? 'active' : '' ?>" href="/?action=results">
-                        <i class="fas fa-list me-1"></i> Resultados
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="fas fa-history me-1"></i> Histórico
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="fas fa-chart-bar me-1"></i> Relatórios
-                    </a>
-                </li>
-            </ul>
-
+        <div class="ms-auto">
             <!-- User Menu -->
             <ul class="navbar-nav">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i>
-                        <?= $_SESSION['user_name'] ?? 'Usuário' ?>
+                <li class="nav-item dropdown user-profile-nav">
+                    <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                            <i class="fas fa-user small"></i>
+                        </div>
+                        <span><?= $_SESSION['user_name'] ?? 'Usuário' ?></span>
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Perfil</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Configurações</a></li>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                        <li><a class="dropdown-item py-2" href="#"><i class="fas fa-user me-2 text-muted"></i> Perfil</a></li>
+                        <li><a class="dropdown-item py-2" href="#"><i class="fas fa-cog me-2 text-muted"></i> Configurações</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i> Sair</a></li>
+                        <li><a class="dropdown-item py-2 text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i> Sair</a></li>
                     </ul>
                 </li>
             </ul>
@@ -123,4 +88,7 @@ $base_url .= "://" . $_SERVER['HTTP_HOST'];
 </nav>
 
 <!-- Main Container -->
-<div class="container-fluid mt-3">
+<div class="container-fluid">
+    <div class="row">
+        <?php include __DIR__ . '/sidebar.php'; ?>
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">

@@ -1,22 +1,28 @@
+        </main>
+    </div>
 </div> <!-- End container-fluid -->
 
 <!-- Footer -->
-<footer class="footer mt-auto py-3 bg-light border-top">
-    <div class="container-fluid">
-        <div class="row align-items-center">
+<footer class="footer py-3 border-top">
+    <div class="container-fluid h-100">
+        <div class="row align-items-center h-100">
             <div class="col-md-6">
-                    <span class="text-muted">
-                        <i class="fas fa-code me-1"></i>
-                        Covered Straddle Scanner v1.0.0
-                    </span>
+                <p class="mb-0 text-muted small">
+                    <i class="fas fa-copyright me-1"></i>
+                    <?= date('Y') ?> <strong>Covered Straddle Scanner</strong>. Todos os direitos reservados.
+                </p>
             </div>
             <div class="col-md-6 text-end">
-                    <span class="text-muted">
-                        <i class="fas fa-clock me-1"></i>
-                        <?= date('d/m/Y H:i:s') ?> |
-                        <i class="fas fa-server me-1 ms-2"></i>
-                        <?= $_SERVER['SERVER_NAME'] ?? 'localhost' ?>
+                <div class="d-inline-flex align-items-center text-muted small">
+                    <span class="me-3">
+                        <i class="fas fa-server me-1 opacity-50"></i>
+                        v1.2.0
                     </span>
+                    <span class="badge bg-light text-dark border fw-normal">
+                        <i class="fas fa-circle text-success me-1 small"></i>
+                        Sistema Online
+                    </span>
+                </div>
             </div>
         </div>
     </div>
