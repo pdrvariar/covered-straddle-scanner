@@ -7,6 +7,28 @@ error_reporting(E_ALL);
 // Start session
 session_start();
 
+// Iniciar Xdebug quando o parâmetro estiver presente
+if (isset($_GET['XDEBUG_SESSION_START']) || isset($_POST['XDEBUG_SESSION_START']) || isset($_COOKIE['XDEBUG_SESSION'])) {
+    // Forçar o início do Xdebug
+    if (function_exists('xdebug_break')) {
+        xdebug_break(); // Ponto de breakpoint automático
+    }
+
+    // Definir cookie para Xdebug
+    if (!isset($_COOKIE['XDEBUG_SESSION'])) {
+        $cookieParams = session_get_cookie_params();
+        setcookie(
+            'XDEBUG_SESSION',
+            'PHPSTORM',
+            time() + (24 * 3600), // 24 horas
+            $cookieParams['path'],
+            $cookieParams['domain'],
+            $cookieParams['secure'],
+            $cookieParams['httponly']
+        );
+    }
+}
+
 // Load environment variables
 if (file_exists(__DIR__ . '/../.env')) {
     $env = parse_ini_file(__DIR__ . '/../.env');

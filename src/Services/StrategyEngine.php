@@ -13,98 +13,93 @@ class StrategyEngine {
         $this->calculator = new CoveredStraddleCalculator();
     }
 
-    public function findAtmOptions(array $stockData, array $optionsChain, string $expirationDate): array {
-        $currentPrice = $stockData['close'] ?? 0;
-        $strikeLimit = $currentPrice * 0.15;
-        $maxAgeMs = 300000; // 5 minutes
-        $nowMs = time() * 1000;
-
-        $atmOptions = [];
-
-        foreach ($optionsChain as $option) {
-            // Validate expiration date
-            if (($option['due_date'] ?? '') !== $expirationDate) {
-                continue;
-            }
-
-            // Check recency
-            $lastTrade = $option['last_trade_at'] ?? 0;
-            if (($nowMs - $lastTrade) > $maxAgeMs) {
-                continue;
-            }
-
-            // Check liquidity spread
-            $bid = $option['bid'] ?? 0;
-            $ask = $option['ask'] ?? 0;
-            if (abs($ask - $bid) > 0.05) {
-                continue;
-            }
-
-            // Check strike range
-            $strike = $option['strike'] ?? 0;
-            if (abs($strike - $currentPrice) <= $strikeLimit) {
-                $atmOptions[] = $option;
-            }
-        }
-
-        return $atmOptions;
-    }
-
-    public function evaluateStraddles(string $symbol, string $expirationDate, float $selicAnnual): ?array {
+    public function evaluateStraddles(string $symbol, string $expirationDate, float $selicAnnual, array $filters = []): ?array {
         try {
+            error_log("=== Iniciando análise para $symbol (venc: $expirationDate) ===");
+
+            // 1. Buscar dados da ação
             $stockData = $this->apiClient->getStockData($symbol);
             if (!$stockData) {
-                return null;
-            }
-
-            $optionsChain = $this->apiClient->getOptionsChain($symbol);
-            if (empty($optionsChain)) {
+                error_log("❌ Dados da ação $symbol não encontrados");
                 return null;
             }
 
             $currentPrice = $stockData['close'];
-            $atmOptions = $this->findAtmOptions($stockData, $optionsChain, $expirationDate);
+            error_log("📊 Preço atual de $symbol: R$ " . number_format($currentPrice, 2));
 
-            // Separate calls and puts
-            $calls = array_filter($atmOptions, fn($opt) => ($opt['category'] ?? '') === 'CALL');
-            $puts = array_filter($atmOptions, fn($opt) => ($opt['category'] ?? '') === 'PUT');
+            // Verificar se tem opções listadas
+            if (!($stockData['has_options'] ?? false)) {
+                error_log("⚠️  Ação $symbol não tem opções listadas");
+                return null;
+            }
+
+            // 2. Buscar opções ATM filtradas (método otimizado)
+            $atmOptions = $this->apiClient->getAtmOptions($symbol, $expirationDate, $currentPrice, $filters);
+
+            if (empty($atmOptions)) {
+                error_log("❌ Nenhuma opção ATM encontrada para $symbol no vencimento $expirationDate");
+                return null;
+            }
+
+            // Separar calls e puts
+            $calls = array_filter($atmOptions, function($opt) {
+                return ($opt['category'] ?? '') === 'CALL';
+            });
+
+            $puts = array_filter($atmOptions, function($opt) {
+                return ($opt['category'] ?? '') === 'PUT';
+            });
+
+            error_log("📈 Calls ATM: " . count($calls));
+            error_log("📉 Puts ATM: " . count($puts));
+
+            if (empty($calls) || empty($puts)) {
+                error_log("❌ Faltam calls ou puts para formar straddle");
+                return null;
+            }
 
             $bestStraddle = null;
             $bestProfit = -INF;
 
-            // Get unique strikes
+            // 3. Agrupar por strike para formar straddles
             $strikes = array_unique(array_column($atmOptions, 'strike'));
+            error_log("🎯 Strikes disponíveis: " . implode(', ', $strikes));
+
+            $allStraddles = [];
 
             foreach ($strikes as $strike) {
-                $strikeCalls = array_filter($calls, fn($call) => $call['strike'] == $strike);
-                $strikePuts = array_filter($puts, fn($put) => $put['strike'] == $strike);
+                // Buscar call com este strike (maior volume)
+                $strikeCalls = array_filter($calls, function($call) use ($strike) {
+                    return $call['strike'] == $strike;
+                });
+
+                // Buscar put com este strike (maior volume)
+                $strikePuts = array_filter($puts, function($put) use ($strike) {
+                    return $put['strike'] == $strike;
+                });
 
                 if (empty($strikeCalls) || empty($strikePuts)) {
                     continue;
                 }
 
-                // Get highest volume options
                 $call = $this->getHighestVolumeOption($strikeCalls);
                 $put = $this->getHighestVolumeOption($strikePuts);
 
-                // Calculate premiums
-                $callPremium = $call['close'] ?? (($call['bid'] + $call['ask']) / 2);
-                $putPremium = $put['close'] ?? (($put['bid'] + $put['ask']) / 2);
+                // Calcular prêmios
+                $callPremium = $this->calculatePremium($call);
+                $putPremium = $this->calculatePremium($put);
 
                 if ($callPremium <= 0 || $putPremium <= 0) {
+                    error_log("⚠️  Prêmio inválido para strike $strike: CALL=$callPremium, PUT=$putPremium");
                     continue;
                 }
 
-                // Calculate days to maturity
-                $dueDate = DateTime::createFromFormat('Y-m-d', $call['due_date']);
-                $now = new DateTime();
-                $daysToMaturity = $dueDate->diff($now)->days;
+                // Calcular dias até vencimento
+                $dueDate = DateTime::createFromFormat('Y-m-d', $expirationDate);
+                $now = new DateTime('today');
+                $daysToMaturity = max(1, $dueDate->diff($now)->days);
 
-                if ($daysToMaturity <= 0) {
-                    continue;
-                }
-
-                // Calculate metrics
+                // Calcular métricas
                 $metrics = $this->calculator->calculateMetrics(
                     $currentPrice,
                     $callPremium,
@@ -113,6 +108,15 @@ class StrategyEngine {
                     $daysToMaturity,
                     $selicAnnual
                 );
+
+                // Aplicar filtro de lucro mínimo
+                $minProfit = $filters['min_profit'] ?? 0;
+                if ($metrics['profit_percent'] < $minProfit) {
+                    error_log("📉 Strike $strike não atinge lucro mínimo: {$metrics['profit_percent']}% < {$minProfit}%");
+                    continue;
+                }
+
+                error_log("✅ Strike $strike: Lucro = {$metrics['profit_percent']}%, Retorno mensal = {$metrics['monthly_profit_percent']}%");
 
                 if ($metrics['max_profit'] > $bestProfit) {
                     $bestProfit = $metrics['max_profit'];
@@ -126,17 +130,25 @@ class StrategyEngine {
                         'strike' => $strike,
                         'expiration_date' => $expirationDate,
                         'days_to_maturity' => $daysToMaturity,
-                        'analysis_date' => $now->format('Y-m-d H:i:s')
+                        'analysis_date' => $now->format('Y-m-d H:i:s'),
+                        'annual_profit_percent' => $metrics['profit_percent'] * (365 / $daysToMaturity)
                     ];
 
                     $bestStraddle = array_merge($bestStraddle, $metrics);
                 }
             }
 
-            return $bestStraddle;
+            if ($bestStraddle) {
+                error_log("🎉 Melhor straddle para $symbol: Strike {$bestStraddle['strike']}, Lucro {$bestStraddle['profit_percent']}%");
+                return $bestStraddle;
+            } else {
+                error_log("❌ Nenhum straddle viável encontrado para $symbol");
+                return null;
+            }
 
         } catch (\Exception $e) {
-            error_log("Error evaluating {$symbol}: " . $e->getMessage());
+            error_log("💥 ERRO na análise de $symbol: " . $e->getMessage());
+            error_log("Trace: " . $e->getTraceAsString());
             return null;
         }
     }
@@ -153,7 +165,31 @@ class StrategyEngine {
             }
         }
 
+        // Se nenhum tem volume, retorna o primeiro
+        if (empty($bestOption) && !empty($options)) {
+            return reset($options);
+        }
+
         return $bestOption;
     }
+
+    private function calculatePremium(array $option): float {
+        // Prioridade: close > bid/ask médio > bid
+        if (!empty($option['close']) && $option['close'] > 0) {
+            return $option['close'];
+        }
+
+        $bid = $option['bid'] ?? 0;
+        $ask = $option['ask'] ?? 0;
+
+        if ($bid > 0 && $ask > 0) {
+            return ($bid + $ask) / 2;
+        } elseif ($bid > 0) {
+            return $bid;
+        } elseif ($ask > 0) {
+            return $ask;
+        }
+
+        return 0;
+    }
 }
-?>

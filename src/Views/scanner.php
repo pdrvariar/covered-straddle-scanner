@@ -149,8 +149,9 @@
                                            class="form-control"
                                            id="access_token"
                                            name="access_token"
-                                           required
-                                           placeholder="Insira seu token de acesso da OPLab">
+                                           <?= empty($_ENV['OPLAB_TOKEN']) ? 'required' : '' ?>
+                                           value="<?= htmlspecialchars($_ENV['OPLAB_TOKEN'] ?? '') ?>"
+                                           placeholder="<?= !empty($_ENV['OPLAB_TOKEN']) ? 'Token carregado do .env' : 'Insira seu token de acesso da OPLab' ?>">
                                     <button class="btn btn-outline-secondary" type="button" id="toggleToken">
                                         <i class="fas fa-eye"></i>
                                     </button>

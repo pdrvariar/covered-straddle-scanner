@@ -25,7 +25,7 @@ class ScannerController {
 
     public function results() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $accessToken = $_POST['access_token'] ?? '';
+            $accessToken = $_POST['access_token'] ?? ($_ENV['OPLAB_TOKEN'] ?? '');
             $tickersInput = $_POST['tickers'] ?? '';
             $expirationDate = $_POST['expiration_date'] ?? '';
             $totalCapital = $_POST['total_capital'] ?? 50000;
@@ -50,11 +50,19 @@ class ScannerController {
                 $tickers = array_map('trim', explode(',', $tickersInput));
                 $results = [];
 
+                // Capturar filtros
+                $filters = [
+                    'filter_liquidity' => isset($_POST['filter_liquidity']),
+                    'filter_recency' => isset($_POST['filter_recency']),
+                    'min_profit' => (float)($_POST['min_profit'] ?? 0)
+                ];
+
                 foreach ($tickers as $ticker) {
                     $result = $strategyEngine->evaluateStraddles(
                         $ticker,
                         $expirationDate,
-                        $selicAnnual
+                        $selicAnnual,
+                        $filters
                     );
 
                     if ($result) {

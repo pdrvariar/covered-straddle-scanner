@@ -18,8 +18,14 @@ services:
       - DB_USER=straddle_user
       - DB_PASS=straddle_pass
       - APP_ENV=development
+      # Adicione estas variáveis para Xdebug
+      - PHP_IDE_CONFIG=serverName=straddle-scanner
+      - XDEBUG_MODE=debug,develop
+      - XDEBUG_CONFIG=client_host=host.docker.internal client_port=9004 idekey=PHPSTORM
     networks:
       - straddle-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   db:
     image: mysql:8.0

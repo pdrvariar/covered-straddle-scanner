@@ -21,7 +21,7 @@ class ApiController {
         header('Content-Type: application/json');
 
         try {
-            $accessToken = $_POST['access_token'] ?? $_GET['access_token'] ?? '';
+            $accessToken = $_POST['access_token'] ?? $_GET['access_token'] ?? ($_ENV['OPLAB_TOKEN'] ?? '');
             $symbols = $_POST['symbols'] ?? $_GET['symbols'] ?? '';
             $expiration = $_POST['expiration'] ?? $_GET['expiration'] ?? date('Y-m-d', strtotime('+30 days'));
 
@@ -53,7 +53,9 @@ class ApiController {
             }
 
             // Sort by profit percentage
-            usort($results, fn($a, $b) => $b['profit_percent'] <=> $a['profit_percent']);
+            usort($results, function($a, $b) {
+                return $b['profit_percent'] <=> $a['profit_percent'];
+            });
 
             echo json_encode([
                 'success' => true,
