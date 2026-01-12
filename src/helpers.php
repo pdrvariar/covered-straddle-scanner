@@ -116,4 +116,72 @@ if (!function_exists('calculate_payoff')) {
         return $stockPayoff + $callPayoff + $putPayoff;
     }
 }
+
+/**
+ * Adiciona uma notificação flash para ser exibida na próxima requisição
+ */
+function add_flash_notification(string $message, string $type = 'info'): void {
+    if (!isset($_SESSION['flash_notifications'])) {
+        $_SESSION['flash_notifications'] = [];
+    }
+
+    $_SESSION['flash_notifications'][] = [
+        'message' => $message,
+        'type' => $type,
+        'timestamp' => time()
+    ];
+}
+
+/**
+ * Obtém todas as notificações flash e limpa a sessão
+ */
+function get_flash_notifications(): array {
+    $notifications = $_SESSION['flash_notifications'] ?? [];
+    unset($_SESSION['flash_notifications']);
+    return $notifications;
+}
+
+/**
+ * Renderiza as notificações flash como JavaScript
+ */
+function render_flash_notifications(): string {
+    $notifications = get_flash_notifications();
+    if (empty($notifications)) {
+        return '';
+    }
+
+    $output = '<script>';
+    foreach ($notifications as $notification) {
+        $message = addslashes($notification['message']);
+        $type = $notification['type'];
+        $output .= "showNotification('{$message}', '{$type}');";
+    }
+    $output .= '</script>';
+
+    return $output;
+}
+
+/**
+ * Retorna uma resposta JSON com notificação
+ */
+function json_response(array $data = [], bool $success = true, string $message = ''): void {
+    header('Content-Type: application/json');
+
+    $response = [
+        'success' => $success,
+        'data' => $data,
+        'message' => $message,
+        'timestamp' => date('Y-m-d H:i:s')
+    ];
+
+    if ($message && !isset($data['notification'])) {
+        $response['notification'] = [
+            'message' => $message,
+            'type' => $success ? 'success' : 'error'
+        ];
+    }
+
+    echo json_encode($response);
+    exit;
+}
 ?>

@@ -40,5 +40,41 @@
         <?= $page_js ?>
     </script>
 <?php endif; ?>
+
+<!-- Incluir utils.js se existir -->
+<?php if (file_exists(__DIR__ . '/../../../public/js/utils.js')): ?>
+    <script src="/js/utils.js"></script>
+<?php endif; ?>
+
+<!-- Sistema de Notificações (já incluso no header, mas garantindo) -->
+<script>
+    // Funções de compatibilidade para páginas antigas
+    if (typeof showNotification === 'undefined') {
+        window.showNotification = function(message, type = 'info') {
+            if (typeof Notification !== 'undefined') {
+                Notification.show(message, type);
+            } else {
+                alert(message);
+            }
+        };
+    }
+
+    if (typeof showLoading === 'undefined') {
+        window.showLoading = function(message = 'Processando...') {
+            if (typeof Loading !== 'undefined') {
+                Loading.show(message);
+            }
+        };
+    }
+
+    if (typeof hideLoading === 'undefined') {
+        window.hideLoading = function() {
+            if (typeof Loading !== 'undefined') {
+                Loading.hide();
+            }
+        };
+    }
+</script>
+
 </body>
 </html>

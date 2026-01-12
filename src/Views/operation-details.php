@@ -77,6 +77,7 @@ $lfts11Data = $operation['lfts11_data'] ?? [
     </style>
 </head>
 <body class="bg-light">
+<div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
 <div class="container-fluid">
     <div class="row">
         <?php include __DIR__ . '/layout/sidebar.php'; ?>
@@ -586,26 +587,107 @@ $lfts11Data = $operation['lfts11_data'] ?? [
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    function showAlert(message, type = 'info') {
+        const alertContainer = document.getElementById('alertContainer');
+        const alertId = 'alert-' + Date.now();
+        const alertHtml = `
+        <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert" style="min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                <div>${message}</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+        alertContainer.insertAdjacentHTML('beforeend', alertHtml);
+
+        // Auto-remover após 5 segundos
+        setTimeout(() => {
+            const alertElement = document.getElementById(alertId);
+            if (alertElement) {
+                alertElement.remove();
+            }
+        }, 5000);
+    }
+
     function saveOperation() {
         const data = <?= json_encode($operation) ?>;
+
+        // Prepara os dados para envio
+        const operationData = {
+            symbol: data.symbol || '',
+            current_price: data.current_price || 0,
+            strike_price: data.strike_price || data.strike || 0,
+            call_symbol: data.call_symbol || '',
+            call_premium: data.call_premium || 0,
+            put_symbol: data.put_symbol || '',
+            put_premium: data.put_premium || 0,
+            expiration_date: data.expiration_date || '',
+            days_to_maturity: data.days_to_maturity || 0,
+            initial_investment: data.initial_investment || 0,
+            max_profit: data.max_profit || 0,
+            max_loss: data.max_loss || 0,
+            profit_percent: data.profit_percent || 0,
+            monthly_profit_percent: data.monthly_profit_percent || 0,
+            selic_annual: data.selic_annual || 0.1375,
+            status: 'active',
+            strategy_type: 'covered_straddle',
+            risk_level: 'medium',
+            notes: 'Operação salva via scanner'
+        };
+
+        // Mostrar loading global
+        showLoading('Salvando operação...');
+
+        // Usar a API via POST
         fetch('/?action=save', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                'operation': JSON.stringify(data)
+                'operation': JSON.stringify(operationData)
             })
-        }).then(response => {
-            if (response.ok) {
-                alert('Operação salva com sucesso!');
-            } else {
-                alert('Erro ao salvar operação.');
-            }
-        }).catch(error => {
-            console.error('Erro:', error);
-            alert('Erro ao salvar operação.');
-        });
+        })
+            .then(response => {
+                // Verificar se é um redirecionamento
+                if (response.redirected) {
+                    hideLoading();
+                    showSuccess('Operação salva com sucesso! Redirecionando...');
+                    setTimeout(() => {
+                        window.location.href = response.url;
+                    }, 1500);
+                    return null;
+                }
+                return response.text();
+            })
+            .then(text => {
+                hideLoading();
+
+                // Tentar extrair mensagem de sucesso
+                if (text.includes('success') || text.includes('Operação salva')) {
+                    showSuccess('Operação salva com sucesso!');
+
+                    // Se houver ID na resposta, redirecionar
+                    const match = text.match(/id=(\d+)/);
+                    if (match) {
+                        setTimeout(() => {
+                            window.location.href = '/?action=details&id=' + match[1];
+                        }, 2000);
+                    } else {
+                        // Recarregar após 2 segundos
+                        setTimeout(() => location.reload(), 2000);
+                    }
+                } else {
+                    showError('Erro ao salvar operação. Verifique o console para mais detalhes.');
+                    console.log('Resposta do servidor:', text);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Erro:', error);
+                showError('Erro de conexão ao salvar operação.');
+            });
     }
 
     function exportOperation() {

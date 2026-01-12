@@ -43,6 +43,18 @@ $base_url .= "://" . $_SERVER['HTTP_HOST'];
             <link href="<?= $css ?>" rel="stylesheet">
         <?php endforeach; ?>
     <?php endif; ?>
+
+    <!-- Sistema de Notificações Global -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="/js/notifications.js"></script>
+
+    <?php
+        // Renderizar notificações flash se existirem
+        if (function_exists('render_flash_notifications')) {
+            echo render_flash_notifications();
+        }
+    ?>
+
 </head>
 <body>
 <!-- Navigation -->
