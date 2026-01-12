@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Config\Controllers;
+namespace App\Controllers;
 
 use App\Config\Database;
-use App\Controllers\Exception;
 use App\Models\Operation;
 use App\Services\OPLabAPIClient;
 use App\Services\StrategyEngine;

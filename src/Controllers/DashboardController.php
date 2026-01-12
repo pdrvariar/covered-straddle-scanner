@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Config\Controllers;
+namespace App\Controllers;
 
 use App\Config\Database;
 use App\Models\Operation;

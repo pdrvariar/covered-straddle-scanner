@@ -1,291 +1,227 @@
-<div class="col-md-9 col-lg-10 ms-sm-auto px-md-4">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">
-            <i class="fas fa-history me-2"></i>
-            Operações Salvas
-        </h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group me-2">
-                <a href="/?action=operations&sub=export" class="btn btn-sm btn-outline-secondary">
-                    <i class="fas fa-download me-1"></i> Exportar CSV
-                </a>
-                <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
-                    <i class="fas fa-print me-1"></i> Imprimir
-                </button>
-            </div>
-        </div>
-    </div>
+<?php
+namespace App\Models;
 
-    <!-- Filtros -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="GET" action="/" class="row g-3">
-                <input type="hidden" name="action" value="operations">
+use PDO;
+use Exception;
+use App\Config\Database;
 
-                <div class="col-md-3">
-                    <label for="status" class="form-label">Status:</label>
-                    <select name="status" id="status" class="form-select form-select-sm">
-                        <option value="">Todos</option>
-                        <option value="active" <?= isset($_GET['status']) && $_GET['status'] == 'active' ? 'selected' : '' ?>>Ativas</option>
-                        <option value="closed" <?= isset($_GET['status']) && $_GET['status'] == 'closed' ? 'selected' : '' ?>>Fechadas</option>
-                        <option value="expired" <?= isset($_GET['status']) && $_GET['status'] == 'expired' ? 'selected' : '' ?>>Expiradas</option>
-                    </select>
-                </div>
+class Operation
+{
+    private static $connection = null;
 
-                <div class="col-md-3">
-                    <label for="symbol" class="form-label">Ativo:</label>
-                    <input type="text" name="symbol" id="symbol" class="form-control form-control-sm"
-                           placeholder="Ex: PETR4"
-                           value="<?= htmlspecialchars($_GET['symbol'] ?? '') ?>">
-                </div>
+    private static function getConnection()
+    {
+        if (self::$connection === null) {
+            $database = new Database();
+            self::$connection = $database->connect();
+        }
+        return self::$connection;
+    }
 
-                <div class="col-md-3">
-                    <label for="start_date" class="form-label">Data Início:</label>
-                    <input type="date" name="start_date" id="start_date" class="form-control form-control-sm"
-                           value="<?= htmlspecialchars($_GET['start_date'] ?? '') ?>">
-                </div>
+    // Método para uso do DashboardController (não estático)
+    public function getStats()
+    {
+        $db = self::getConnection();
 
-                <div class="col-md-3">
-                    <label for="end_date" class="form-label">Data Fim:</label>
-                    <input type="date" name="end_date" id="end_date" class="form-control form-control-sm"
-                           value="<?= htmlspecialchars($_GET['end_date'] ?? '') ?>">
-                </div>
+        $stats = [
+                'total' => 0,
+                'active' => 0,
+                'closed' => 0,
+                'expired' => 0,
+                'today_ops' => 0,
+                'best_profit' => 0,
+                'avg_profit' => 0,
+                'protection' => 0,
+                'avg_volume' => 0,
+                'avg_days' => 0,
+                'selic' => 13.75,
+                'success_rate' => 0
+        ];
 
-                <div class="col-12 text-end">
-                    <button type="submit" class="btn btn-primary btn-sm">
-                        <i class="fas fa-filter me-1"></i> Filtrar
-                    </button>
-                    <a href="/?action=operations" class="btn btn-secondary btn-sm">
-                        Limpar
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
+        try {
+            // Total de operações
+            $sql = "SELECT COUNT(*) as total, 
+                           SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+                           SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) as closed,
+                           SUM(CASE WHEN status = 'expired' THEN 1 ELSE 0 END) as expired
+                    FROM operations";
 
-    <!-- Estatísticas -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-icon bg-primary">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="stat-info">
-                    <h3><?= $stats['total'] ?></h3>
-                    <p>Total de Operações</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-icon bg-success">
-                    <i class="fas fa-play-circle"></i>
-                </div>
-                <div class="stat-info">
-                    <h3><?= $stats['active'] ?></h3>
-                    <p>Operações Ativas</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-icon bg-info">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-info">
-                    <h3><?= $stats['closed'] ?></h3>
-                    <p>Operações Fechadas</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-icon bg-warning">
-                    <i class="fas fa-times-circle"></i>
-                </div>
-                <div class="stat-info">
-                    <h3><?= $stats['expired'] ?></h3>
-                    <p>Operações Expiradas</p>
-                </div>
-            </div>
-        </div>
-    </div>
+            $stmt = $db->query($sql);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    <!-- Tabela de Operações -->
-    <div class="card">
-        <div class="card-body">
-            <?php if (empty($operations)): ?>
-                <div class="text-center py-5">
-                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
-                    <h4>Nenhuma operação encontrada</h4>
-                    <p class="text-muted">Comece salvando operações do scanner para vê-las aqui.</p>
-                    <a href="/?action=scan" class="btn btn-primary">
-                        <i class="fas fa-search me-1"></i> Ir para Scanner
-                    </a>
-                </div>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-hover table-sm">
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Ativo</th>
-                            <th>Preço Atual</th>
-                            <th>Strike</th>
-                            <th>Expiração</th>
-                            <th>Lucro %</th>
-                            <th>Lucro Mensal %</th>
-                            <th>Status</th>
-                            <th>Data Entrada</th>
-                            <th>Ações</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($operations as $op): ?>
-                            <?php
-                            // Determinar cor do status
-                            $statusClass = [
-                                'active' => 'bg-success',
-                                'closed' => 'bg-primary',
-                                'expired' => 'bg-danger'
-                            ][$op['status']] ?? 'bg-secondary';
+            if ($result) {
+                $stats = array_merge($stats, $result);
+            }
 
-                            // Formatar valores monetários
-                            $currentPrice = number_format($op['current_price'], 2, ',', '.');
-                            $strikePrice = number_format($op['strike_price'], 2, ',', '.');
-                            $profitPercent = number_format($op['profit_percent'], 2, ',', '.');
-                            $monthlyProfit = number_format($op['monthly_profit_percent'], 2, ',', '.');
-                            ?>
-                            <tr>
-                                <td><strong>#<?= $op['id'] ?></strong></td>
-                                <td>
-                                    <strong><?= htmlspecialchars($op['symbol']) ?></strong>
-                                    <?php if ($op['call_symbol']): ?>
-                                        <br>
-                                        <small class="text-muted">
-                                            Call: <?= htmlspecialchars($op['call_symbol']) ?>
-                                        </small>
-                                    <?php endif; ?>
-                                </td>
-                                <td>R$ <?= $currentPrice ?></td>
-                                <td>R$ <?= $strikePrice ?></td>
-                                <td>
-                                    <?= date('d/m/Y', strtotime($op['expiration_date'])) ?>
-                                    <br>
-                                    <small class="text-muted">
-                                        <?= $op['days_to_maturity'] ?> dias
-                                    </small>
-                                </td>
-                                <td>
-                                    <span class="badge <?= $op['profit_percent'] >= 0 ? 'bg-success' : 'bg-danger' ?>">
-                                        <?= $profitPercent ?>%
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">
-                                        <?= $monthlyProfit ?>%
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge <?= $statusClass ?>">
-                                        <?= ucfirst($op['status']) ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?= date('d/m/Y H:i', strtotime($op['entry_date'] ?? $op['created_at'])) ?>
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="/?action=operations&sub=show&id=<?= $op['id'] ?>"
-                                           class="btn btn-outline-info"
-                                           title="Detalhes">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <button type="button"
-                                                class="btn btn-outline-danger delete-operation"
-                                                data-id="<?= $op['id'] ?>"
-                                                title="Excluir">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
+            // Operações de hoje
+            $sql = "SELECT COUNT(*) as today_ops FROM operations 
+                    WHERE DATE(created_at) = CURDATE()";
+            $stmt = $db->query($sql);
+            $todayResult = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['today_ops'] = $todayResult['today_ops'] ?? 0;
 
-<!-- Modal de confirmação de exclusão -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Exclusão</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja excluir esta operação? Esta ação não pode ser desfeita.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                    <input type="hidden" name="action" value="delete_operation">
-                    <input type="hidden" name="operation_id" id="deleteOperationId">
-                    <button type="submit" class="btn btn-danger">Excluir</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+            // Melhor lucro
+            $sql = "SELECT MAX(profit_percent) as best_profit FROM operations 
+                    WHERE profit_percent IS NOT NULL";
+            $stmt = $db->query($sql);
+            $bestResult = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['best_profit'] = $bestResult['best_profit'] ?? 0;
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Configurar modal de exclusão
-        const deleteButtons = document.querySelectorAll('.delete-operation');
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        const deleteOperationIdInput = document.getElementById('deleteOperationId');
-        const deleteForm = document.getElementById('deleteForm');
+            // Lucro médio
+            $sql = "SELECT AVG(profit_percent) as avg_profit FROM operations 
+                    WHERE profit_percent IS NOT NULL";
+            $stmt = $db->query($sql);
+            $avgResult = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['avg_profit'] = $avgResult['avg_profit'] ?? 0;
 
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const operationId = this.getAttribute('data-id');
-                deleteOperationIdInput.value = operationId;
-                deleteModal.show();
-            });
-        });
+            // Dias médios até vencimento
+            $sql = "SELECT AVG(days_to_maturity) as avg_days FROM operations 
+                    WHERE days_to_maturity > 0";
+            $stmt = $db->query($sql);
+            $daysResult = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['avg_days'] = $daysResult['avg_days'] ?? 0;
 
-        // Configurar ação do formulário de exclusão
-        deleteForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+        } catch (Exception $e) {
+            // Log error but don't crash
+            error_log("Error getting stats: " . $e->getMessage());
+        }
 
-            const operationId = deleteOperationIdInput.value;
+        return $stats;
+    }
 
-            fetch('/api/save', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'delete_operation',
-                    operation_id: operationId
-                })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Erro ao excluir operação: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Erro ao excluir operação.');
-                });
-        });
-    });
-</script>
+    public function getRecent($limit = 10)
+    {
+        try {
+            $db = self::getConnection();
+            $sql = "SELECT * FROM operations 
+                    ORDER BY created_at DESC 
+                    LIMIT :limit";
+
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error getting recent operations: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    // Método estático para salvar operação
+    public static function save($data)
+    {
+        try {
+            $db = self::getConnection();
+
+            $sql = "INSERT INTO operations (
+                symbol, current_price, strike_price, call_symbol, call_premium,
+                put_symbol, put_premium, expiration_date, days_to_maturity,
+                initial_investment, max_profit, max_loss, profit_percent,
+                monthly_profit_percent, selic_annual, status, strategy_type,
+                risk_level, notes
+            ) VALUES (
+                :symbol, :current_price, :strike_price, :call_symbol, :call_premium,
+                :put_symbol, :put_premium, :expiration_date, :days_to_maturity,
+                :initial_investment, :max_profit, :max_loss, :profit_percent,
+                :monthly_profit_percent, :selic_annual, :status, :strategy_type,
+                :risk_level, :notes
+            )";
+
+            $stmt = $db->prepare($sql);
+
+            $params = [
+                    ':symbol' => $data['symbol'] ?? null,
+                    ':current_price' => $data['current_price'] ?? null,
+                    ':strike_price' => $data['strike_price'] ?? null,
+                    ':call_symbol' => $data['call_symbol'] ?? null,
+                    ':call_premium' => $data['call_premium'] ?? null,
+                    ':put_symbol' => $data['put_symbol'] ?? null,
+                    ':put_premium' => $data['put_premium'] ?? null,
+                    ':expiration_date' => $data['expiration_date'] ?? null,
+                    ':days_to_maturity' => $data['days_to_maturity'] ?? null,
+                    ':initial_investment' => $data['initial_investment'] ?? null,
+                    ':max_profit' => $data['max_profit'] ?? null,
+                    ':max_loss' => $data['max_loss'] ?? null,
+                    ':profit_percent' => $data['profit_percent'] ?? null,
+                    ':monthly_profit_percent' => $data['monthly_profit_percent'] ?? null,
+                    ':selic_annual' => $data['selic_annual'] ?? null,
+                    ':status' => $data['status'] ?? 'active',
+                    ':strategy_type' => $data['strategy_type'] ?? 'covered_straddle',
+                    ':risk_level' => $data['risk_level'] ?? 'medium',
+                    ':notes' => $data['notes'] ?? null
+            ];
+
+            if ($stmt->execute($params)) {
+                return $db->lastInsertId();
+            }
+
+            throw new Exception('Erro ao salvar operação');
+        } catch (Exception $e) {
+            error_log("Error saving operation: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    // Método estático para listar todas as operações
+    public static function getAll($filters = [])
+    {
+        try {
+            $db = self::getConnection();
+
+            $sql = "SELECT * FROM operations WHERE 1=1";
+            $params = [];
+
+            if (!empty($filters['status'])) {
+                $sql .= " AND status = :status";
+                $params[':status'] = $filters['status'];
+            }
+
+            if (!empty($filters['symbol'])) {
+                $sql .= " AND symbol LIKE :symbol";
+                $params[':symbol'] = '%' . $filters['symbol'] . '%';
+            }
+
+            $sql .= " ORDER BY created_at DESC";
+
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error getting all operations: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    // Método estático para obter operação por ID
+    public static function getById($id)
+    {
+        try {
+            $db = self::getConnection();
+            $sql = "SELECT * FROM operations WHERE id = :id";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([':id' => $id]);
+
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error getting operation by ID: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Método estático para excluir operação
+    public static function delete($id)
+    {
+        try {
+            $db = self::getConnection();
+            $sql = "DELETE FROM operations WHERE id = :id";
+            $stmt = $db->prepare($sql);
+
+            return $stmt->execute([':id' => $id]);
+        } catch (Exception $e) {
+            error_log("Error deleting operation: " . $e->getMessage());
+            return false;
+        }
+    }
+}
