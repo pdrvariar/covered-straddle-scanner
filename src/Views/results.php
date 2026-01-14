@@ -25,7 +25,7 @@ include __DIR__ . '/layout/header.php';
                 <div class="text-end">
                         <span class="badge bg-white text-primary fs-6">
                             <i class="fas fa-sort-amount-down me-1"></i>
-                            Ordenado por Lucro
+                            Ordenado por % Extrínseco/Strike
                         </span>
                 </div>
             </div>
@@ -191,6 +191,13 @@ include __DIR__ . '/layout/header.php';
                                             <small class="fw-bold">R$ <?= number_format($totalInvestment, 0, ',', '.') ?></small>
                                         </div>
                                         <div class="d-flex justify-content-between mb-1">
+                                            <small>V. Extrínseco Total</small>
+                                            <small class="fw-bold text-primary">
+                                                R$ <?= number_format($res['total_extrinsic_value'], 2, ',', '.') ?>
+                                                <span class="ms-1 text-muted">(<?= number_format($res['extrinsic_yield'], 2, ',', '.') ?>%)</span>
+                                            </small>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-1">
                                             <small>Lucro Máximo</small>
                                             <small class="text-success fw-bold">R$ <?= number_format($res['max_profit'], 0, ',', '.') ?></small>
                                         </div>
@@ -205,12 +212,14 @@ include __DIR__ . '/layout/header.php';
                                         <div class="col-6">
                                             <span class="d-block text-muted">CALL Vendida:</span>
                                             <span class="fw-bold"><?= htmlspecialchars($res['call_symbol']) ?></span><br>
-                                            <span>Prêmio: R$ <?= number_format($res['call_premium'], 2, ',', '.') ?></span>
+                                            <span>Prêmio: R$ <?= number_format($res['call_premium'], 2, ',', '.') ?></span><br>
+                                            <small class="text-muted">Extrínseco: R$ <?= number_format($res['call_extrinsic_value'], 2, ',', '.') ?></small>
                                         </div>
                                         <div class="col-6 text-end">
                                             <span class="d-block text-muted">PUT Vendida:</span>
                                             <span class="fw-bold"><?= htmlspecialchars($res['put_symbol']) ?></span><br>
-                                            <span>Prêmio: R$ <?= number_format($res['put_premium'], 2, ',', '.') ?></span>
+                                            <span>Prêmio: R$ <?= number_format($res['put_premium'], 2, ',', '.') ?></span><br>
+                                            <small class="text-muted">Extrínseco: R$ <?= number_format($res['put_extrinsic_value'], 2, ',', '.') ?></small>
                                         </div>
                                     </div>
 
@@ -336,7 +345,7 @@ include __DIR__ . '/layout/header.php';
                                 <div class="mt-3">
                                     <small class="text-muted">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        Relatório gerado automaticamente. As operações são ordenadas por retorno percentual esperado (maior para menor).
+                                        Relatório gerado automaticamente. As operações são ordenadas pelo percentual de rendimento extrínseco sobre o strike (maior para menor).
                                     </small>
                                 </div>
                             </div>

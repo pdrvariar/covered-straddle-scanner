@@ -131,7 +131,23 @@ class CoveredStraddleCalculator {
         $monthlyProfit = $maxProfit * (30 / $daysToMaturity);
         $monthlyProfitPercent = ($monthlyProfit / $initialInvestment) * 100;
 
+        // Cálculo de valor intrínseco e extrínseco
+        $callIntrinsicValue = max($currentPrice - $strike, 0);
+        $callExtrinsicValue = max($callPremium - $callIntrinsicValue, 0);
+        $putIntrinsicValue = max($strike - $currentPrice, 0);
+        $putExtrinsicValue = max($putPremium - $putIntrinsicValue, 0);
+        $totalExtrinsicValue = $callExtrinsicValue + $putExtrinsicValue;
+        $extrinsicYield = ($totalExtrinsicValue / $strike) * 100;
+
         $result = [
+            // Valores Intrínsecos e Extrínsecos
+            'call_intrinsic_value' => $callIntrinsicValue,
+            'call_extrinsic_value' => $callExtrinsicValue,
+            'put_intrinsic_value' => $putIntrinsicValue,
+            'put_extrinsic_value' => $putExtrinsicValue,
+            'total_extrinsic_value' => $totalExtrinsicValue,
+            'extrinsic_yield' => $extrinsicYield,
+
             // Investimentos
             'stock_investment' => $stockInvestment,
             'lfts11_investment' => $lfts11Investment,

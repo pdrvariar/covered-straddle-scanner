@@ -81,11 +81,11 @@ class ScannerController {
                     }
                 }
 
-                // ORDENAÇÃO DO MAIOR PARA O MENOR LUCRO PERCENTUAL
+                // Ordenar do MAIOR para o MENOR rendimento extrínseco (extrinsic_yield)
                 usort($results, function($a, $b) {
-                    $profitA = $a['profit_percent'] ?? 0;
-                    $profitB = $b['profit_percent'] ?? 0;
-                    return $profitB <=> $profitA; // Ordem decrescente (maior para menor)
+                    $yieldA = $a['extrinsic_yield'] ?? 0;
+                    $yieldB = $b['extrinsic_yield'] ?? 0;
+                    return $yieldB <=> $yieldA;
                 });
 
                 // Store in session for later use

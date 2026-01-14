@@ -173,9 +173,9 @@ class StrategyEngine {
                 return null;
             }
 
-            // Ordenar do MAIOR para o MENOR lucro percentual
+            // Ordenar do MAIOR para o MENOR rendimento extrínseco (extrinsic_yield)
             usort($allStraddles, function($a, $b) {
-                return $b['profit_percent'] <=> $a['profit_percent'];
+                return $b['extrinsic_yield'] <=> $a['extrinsic_yield'];
             });
 
             error_log("🎉 Encontrados " . count($allStraddles) . " straddles para $symbol");
