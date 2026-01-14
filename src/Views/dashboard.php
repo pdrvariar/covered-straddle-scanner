@@ -1,12 +1,23 @@
 <!-- Conteúdo do Dashboard -->
 <div class="pt-3 pb-2 mb-3 border-bottom">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
-            <h1 class="h2">Dashboard</h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group me-2">
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick="location.href='/?action=scan'">
-                    <i class="fas fa-plus me-1"></i> Nova Análise
-                </button>
+    <!-- Cabeçalho -->
+    <div class="page-header-gradient mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h2 mb-2">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    Dashboard
+                </h1>
+                <p class="mb-0 opacity-75">
+                    Visão geral de suas operações e indicadores do mercado
+                </p>
+            </div>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-light shadow-sm" onclick="location.href='/?action=scan'">
+                        <i class="fas fa-plus me-1"></i> Nova Análise
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -153,14 +164,7 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <small class="text-muted">SELIC (Anual)</small>
-                        <h4 class="text-success mb-0"><?= $stats['selic'] ?? '13.75' ?>%</h4>
-                    </div>
-                    <div class="mb-3">
-                        <small class="text-muted">IBOVESPA</small>
-                        <h4 class="<?= ($market['ibov_change'] ?? 0) >= 0 ? 'text-success' : 'text-danger' ?> mb-0">
-                            <?= number_format($market['ibov'] ?? 0, 0, ',', '.') ?>
-                            <small class="fs-6">(<?= ($market['ibov_change'] ?? 0) >= 0 ? '+' : '' ?><?= number_format($market['ibov_change'] ?? 0, 2, ',', '.') ?>%)</small>
-                        </h4>
+                        <h4 class="text-success mb-0"><?= $stats['selic'] ?? '13,75' ?>%</h4>
                     </div>
                     <div class="progress mb-2" style="height: 8px;">
                         <div class="progress-bar bg-success" style="width: <?= min(100, ($stats['success_rate'] ?? 0)) ?>%"></div>

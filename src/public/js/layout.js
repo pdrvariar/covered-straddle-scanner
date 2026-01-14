@@ -169,9 +169,7 @@ class LayoutEnhancer {
     // Utility function to update market data in sidebar
     updateMarketData(data) {
         const marketElements = {
-            'selic': document.querySelector('.market-selic'),
-            'ibov': document.querySelector('.market-ibov'),
-            'dolar': document.querySelector('.market-dolar')
+            'selic': document.querySelector('.market-selic')
         };
 
         for (const [key, element] of Object.entries(marketElements)) {

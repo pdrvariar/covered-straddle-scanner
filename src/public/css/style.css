@@ -747,6 +747,14 @@ main.content-wrapper {
     overflow: hidden;
 }
 
+.page-header-gradient h1, .page-header-gradient h2, .page-header-gradient h3 {
+    color: white !important;
+}
+
+.page-header-gradient .opacity-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
 .page-header-gradient::after {
     content: '';
     position: absolute;

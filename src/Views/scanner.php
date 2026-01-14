@@ -7,6 +7,21 @@ include __DIR__ . '/layout/header.php';
 ?>
 
     <div class="py-4">
+        <!-- Cabeçalho -->
+        <div class="page-header-gradient mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-2">
+                        <i class="fas fa-search me-2"></i>
+                        Scanner Rápido
+                    </h1>
+                    <p class="mb-0 opacity-75">
+                        Configure os parâmetros para localizar as melhores oportunidades de Covered Straddle
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <!-- Error/Success Messages -->
         <?php if (isset($_SESSION['error'])): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">

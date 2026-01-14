@@ -27,11 +27,25 @@ class DashboardController {
             $recentOperations = $this->operationModel->getRecent(10);
             $userSettings = $this->userPrefModel->getSettings();
 
-            // Mock market data
+            // Get real market data from API
+            $accessToken = $_ENV['OPLAB_TOKEN'] ?? '';
+            $selicAnnual = 13.75; // Default fallback
+
+            if (!empty($accessToken)) {
+                try {
+                    $apiClient = new \App\Services\OPLabAPIClient($accessToken);
+                    $apiSelic = $apiClient->getInterestRate();
+                    if ($apiSelic !== null) {
+                        $selicAnnual = $apiSelic * 100; // Convert to percentage
+                    }
+                } catch (\Exception $e) {
+                    error_log("Erro ao buscar SELIC da API: " . $e->getMessage());
+                }
+            }
+
+            // Mock market data (only what's still needed)
             $market = [
-                'ibov' => 127850,
-                'ibov_change' => 0.85,
-                'selic' => 13.75
+                'selic' => $selicAnnual
             ];
 
             // Calculate success rate
@@ -61,7 +75,7 @@ class DashboardController {
             $stats['best_profit'] = number_format($stats['best_profit'] ?? 0, 2, ',', '.');
             $stats['avg_profit'] = number_format($stats['avg_profit'] ?? 0, 2, ',', '.');
             $stats['protection'] = number_format($stats['protection'] ?? 0, 2, ',', '.');
-            $stats['selic'] = number_format($stats['selic'] ?? 13.75, 2, ',', '.');
+            $stats['selic'] = number_format($market['selic'], 2, ',', '.');
             $stats['avg_days'] = number_format($stats['avg_days'] ?? 0, 0, ',', '.');
 
             // Definir variáveis para o header
