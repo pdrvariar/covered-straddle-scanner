@@ -25,13 +25,19 @@ class ScannerController {
 
     public function results() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $accessToken = $_POST['access_token'] ?? ($_ENV['OPLAB_TOKEN'] ?? '');
+            $accessToken = $_ENV['OPLAB_TOKEN'] ?? '';
             $tickersInput = $_POST['tickers'] ?? '';
             $expirationDate = $_POST['expiration_date'] ?? '';
             $totalCapital = $_POST['total_capital'] ?? 50000;
 
-            if (empty($accessToken) || empty($tickersInput)) {
-                $_SESSION['error'] = 'Token de acesso e lista de tickers são obrigatórios';
+            if (empty($accessToken)) {
+                $_SESSION['error'] = 'Token de acesso OPLab não configurado no arquivo .env';
+                header('Location: /?action=scan');
+                exit;
+            }
+
+            if (empty($tickersInput)) {
+                $_SESSION['error'] = 'A lista de tickers é obrigatória';
                 header('Location: /?action=scan');
                 exit;
             }

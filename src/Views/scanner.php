@@ -41,53 +41,6 @@ include __DIR__ . '/layout/header.php';
             <div class="row g-4">
                 <!-- Left Column - Parameters -->
                 <div class="col-lg-8">
-                    <!-- API Configuration -->
-                    <div class="card scanner-card border-0 shadow-lg">
-                        <div class="card-header bg-transparent border-0 pb-0">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="card-icon-wrapper bg-primary">
-                                    <i class="fas fa-key"></i>
-                                </div>
-                                <div class="ms-3">
-                                    <h5 class="card-title mb-1">Configuração da API</h5>
-                                    <p class="text-muted small mb-0">Configure seu acesso aos dados da OPLab</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="mb-4">
-                                <label for="access_token" class="form-label fw-semibold">
-                                    <i class="fas fa-fingerprint me-2"></i>
-                                    Access Token OPLab
-                                </label>
-                                <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-light border-end-0">
-                                    <i class="fas fa-lock text-muted"></i>
-                                </span>
-                                    <input type="password"
-                                           class="form-control border-start-0"
-                                           id="access_token"
-                                           name="access_token"
-                                            <?= empty($_ENV['OPLAB_TOKEN']) ? 'required' : '' ?>
-                                           value="<?= htmlspecialchars($_ENV['OPLAB_TOKEN'] ?? '') ?>"
-                                           placeholder="<?= !empty($_ENV['OPLAB_TOKEN']) ? 'Token carregado do .env' : 'Insira seu token de acesso da OPLab' ?>">
-                                    <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleToken">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                <div class="form-text mt-2">
-                                    <small class="d-flex align-items-center">
-                                        <i class="fas fa-info-circle me-2 text-info"></i>
-                                        Token necessário para acessar os dados da OPLab API.
-                                        <a href="https://oplab.com.br/api" target="_blank" class="ms-2 text-decoration-none">
-                                            <i class="fas fa-external-link-alt me-1"></i>Obter token
-                                        </a>
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Asset Selection -->
                     <div class="card scanner-card border-0 shadow-lg mt-4">
                         <div class="card-header bg-transparent border-0 pb-0">
@@ -415,22 +368,6 @@ include __DIR__ . '/layout/header.php';
 // Passar o JavaScript da página para o footer
 ob_start();
 ?>
-        // Toggle token visibility
-        document.getElementById('toggleToken').addEventListener('click', function() {
-            const tokenInput = document.getElementById('access_token');
-            const icon = this.querySelector('i');
-
-            if (tokenInput.type === 'password') {
-                tokenInput.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                tokenInput.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        });
-
         // Add ticker to textarea
         function addTicker(ticker) {
             const textarea = document.getElementById('tickers');

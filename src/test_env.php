@@ -1,9 +1,5 @@
 <?php
-if (file_exists(__DIR__ . '/.env')) {
-    $env = parse_ini_file(__DIR__ . '/.env');
-    foreach ($env as $key => $value) {
-        $_ENV[$key] = $value;
-    }
-}
+require_once __DIR__ . '/bootstrap.php';
 
 echo "OPLAB_TOKEN: " . ($_ENV['OPLAB_TOKEN'] ?? 'Not set') . "\n";
+echo "APP_ENV: " . ($_ENV['APP_ENV'] ?? 'Not set') . "\n";

@@ -33,15 +33,7 @@ class ScannerApp {
         const scannerForm = document.getElementById('scannerForm');
         if (scannerForm) {
             scannerForm.addEventListener('submit', (e) => {
-                const accessToken = document.getElementById('access_token');
                 const tickers = document.getElementById('tickers');
-
-                if (!accessToken.value.trim()) {
-                    e.preventDefault();
-                    this.showAlert('Por favor, insira o token de acesso da API', 'danger');
-                    accessToken.focus();
-                    return false;
-                }
 
                 if (!tickers.value.trim()) {
                     e.preventDefault();

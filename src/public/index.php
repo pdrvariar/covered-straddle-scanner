@@ -7,8 +7,8 @@ error_reporting(E_ALL);
 // Increase memory limit for scanning large amount of tickers
 ini_set('memory_limit', '256M');
 
-// Start session
-session_start();
+// Load bootstrap
+require_once __DIR__ . '/../bootstrap.php';
 
 // Iniciar Xdebug quando o parâmetro estiver presente
 if (isset($_GET['XDEBUG_SESSION_START']) || isset($_POST['XDEBUG_SESSION_START']) || isset($_COOKIE['XDEBUG_SESSION'])) {
@@ -32,52 +32,6 @@ if (isset($_GET['XDEBUG_SESSION_START']) || isset($_POST['XDEBUG_SESSION_START']
     }
 }
 
-// Load environment variables
-if (file_exists(__DIR__ . '/../.env')) {
-    $env = parse_ini_file(__DIR__ . '/../.env');
-    foreach ($env as $key => $value) {
-        $_ENV[$key] = $value;
-    }
-} else {
-    // Default values for development
-    $_ENV = array_merge($_ENV, [
-        'DB_HOST' => 'db',
-        'DB_NAME' => 'straddle_scanner',
-        'DB_USER' => 'straddle_user',
-        'DB_PASS' => 'straddle_pass',
-        'APP_URL' => 'http://localhost:8080',
-        'APP_ENV' => 'development'
-    ]);
-}
-
-// Load Composer autoloader
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require_once __DIR__ . '/../vendor/autoload.php';
-}
-
-// Load helper functions
-if (file_exists(__DIR__ . '/../helpers.php')) {
-    require_once __DIR__ . '/../helpers.php';
-}
-
-// Autoload classes
-spl_autoload_register(function ($class) {
-    $prefix = 'App\\';
-    $base_dir = __DIR__ . '/../';
-
-    $len = strlen($prefix);
-    if (strncmp($prefix, $class, $len) !== 0) {
-        return;
-    }
-
-    $relative_class = substr($class, $len);
-    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
-
-    if (file_exists($file)) {
-        require $file;
-    }
-});
-
 // Simple routing
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $query = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
@@ -92,7 +46,6 @@ if (strpos($path, '/api/') === 0) {
         exit;
     }
 
-    require __DIR__ . '/../Controllers/ApiController.php';
     $api = new \App\Controllers\ApiController();
 
     $apiPath = substr($path, 5); // Remove '/api/'
@@ -130,43 +83,36 @@ if (!isset($_SESSION['user_id']) && $action !== 'login') {
 
 switch ($action) {
     case 'login':
-        require __DIR__ . '/../Controllers/AuthController.php';
         $controller = new \App\Controllers\AuthController();
         $controller->login();
         break;
 
     case 'logout':
-        require __DIR__ . '/../Controllers/AuthController.php';
         $controller = new \App\Controllers\AuthController();
         $controller->logout();
         break;
 
     case 'scan':
-        require __DIR__ . '/../Controllers/ScannerController.php';
         $controller = new \App\Controllers\ScannerController();
         $controller->scan();
         break;
 
     case 'results':
-        require __DIR__ . '/../Controllers/ScannerController.php';
         $controller = new \App\Controllers\ScannerController();
         $controller->results();
         break;
 
     case 'details':
-        require __DIR__ . '/../Controllers/ScannerController.php';
         $controller = new \App\Controllers\ScannerController();
         $controller->details();
         break;
 
     case 'save':
-        require __DIR__ . '/../Controllers/ScannerController.php';
         $controller = new \App\Controllers\ScannerController();
         $controller->save();
         break;
 
     case 'operations':
-        require __DIR__ . '/../Controllers/OperationController.php';
         $controller = new \App\Controllers\OperationController();
 
         // Verificar se há sub-ação (show, export, etc.)
@@ -192,7 +138,6 @@ switch ($action) {
 
     case 'dashboard':
     default:
-        require __DIR__ . '/../Controllers/DashboardController.php';
         $controller = new \App\Controllers\DashboardController();
         $controller->index();
         break;

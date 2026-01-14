@@ -15,14 +15,22 @@ class ApiController {
         header('Content-Type: application/json');
 
         try {
-            $accessToken = $_POST['access_token'] ?? $_GET['access_token'] ?? ($_ENV['OPLAB_TOKEN'] ?? '');
+            $accessToken = $_ENV['OPLAB_TOKEN'] ?? '';
             $symbols = $_POST['symbols'] ?? $_GET['symbols'] ?? '';
             $expiration = $_POST['expiration'] ?? $_GET['expiration'] ?? date('Y-m-d', strtotime('+30 days'));
 
-            if (empty($accessToken) || empty($symbols)) {
+            if (empty($accessToken)) {
                 echo json_encode([
                     'success' => false,
-                    'error' => 'Token de acesso e símbolos são obrigatórios'
+                    'error' => 'Token de acesso OPLab não configurado no servidor'
+                ]);
+                return;
+            }
+
+            if (empty($symbols)) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Símbolos são obrigatórios'
                 ]);
                 return;
             }
