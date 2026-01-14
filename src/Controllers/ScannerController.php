@@ -96,8 +96,9 @@ class ScannerController {
                     'selic_annual' => $selicAnnual
                 ];
 
-                // Display results
-                include __DIR__ . '/../Views/results.php';
+                // Redirect to avoid form resubmission and allow back button
+                header('Location: /?action=results');
+                exit;
 
             } catch (\Exception $e) {
                 $_SESSION['error'] = 'Erro na análise: ' . $e->getMessage();
@@ -105,8 +106,15 @@ class ScannerController {
                 exit;
             }
         } else {
-            header('Location: /?action=scan');
-            exit;
+            // Se já houver resultados na sessão, exibe-os
+            if (isset($_SESSION['scan_results'])) {
+                $results = $_SESSION['scan_results'];
+                $params = $_SESSION['scan_params'] ?? [];
+                include __DIR__ . '/../Views/results.php';
+            } else {
+                header('Location: /?action=scan');
+                exit;
+            }
         }
     }
     public function details() {

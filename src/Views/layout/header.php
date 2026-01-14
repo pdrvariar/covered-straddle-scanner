@@ -416,7 +416,7 @@ $current_action = $_GET['action'] ?? 'dashboard';
             background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
             border-right: 1px solid rgba(0, 0, 0, 0.08);
             border-radius: 16px;
-            margin: 10px;
+            margin: 10px 5px 10px 10px;
             min-height: calc(100vh - 140px);
             transition: all 0.3s ease;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
@@ -474,7 +474,7 @@ $current_action = $_GET['action'] ?? 'dashboard';
         }
 
         .main-wrapper {
-            gap: 20px;
+            gap: 10px;
             align-items: flex-start;
         }
 
@@ -642,11 +642,11 @@ $current_action = $_GET['action'] ?? 'dashboard';
         </div>
     </div>
 
-    <!-- Desktop Sidebar - AUMENTADO para col-lg-3 -->
-    <div class="d-none d-md-block col-md-4 col-lg-3 px-3">
+    <!-- Desktop Sidebar - DIMINUIDO largura -->
+    <div class="d-none d-md-block col-md-3 col-lg-2 ps-3 pe-0">
         <?php include __DIR__ . '/sidebar.php'; ?>
     </div>
 
-    <!-- Main Content Area - AJUSTADO proporção -->
-    <main class="col-md-8 col-lg-9 px-md-4 content-wrapper">
+    <!-- Main Content Area - AUMENTADO proporção -->
+    <main class="col-md-9 col-lg-10 px-md-2 content-wrapper">
         <div class="container-fluid py-3">
