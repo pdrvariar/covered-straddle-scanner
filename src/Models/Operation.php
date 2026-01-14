@@ -39,14 +39,22 @@ class Operation
         ];
 
         try {
+            $where = "";
+            $params = [];
+            if (isset($_SESSION['user_id'])) {
+                $where = " WHERE user_id = :user_id";
+                $params = [':user_id' => $_SESSION['user_id']];
+            }
+
             // Total de operações
             $sql = "SELECT COUNT(*) as total, 
                            SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
                            SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) as closed,
                            SUM(CASE WHEN status = 'expired' THEN 1 ELSE 0 END) as expired
-                    FROM operations";
+                    FROM operations $where";
 
-            $stmt = $db->query($sql);
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($result) {
@@ -55,31 +63,35 @@ class Operation
 
             // Operações de hoje
             $sql = "SELECT COUNT(*) as today_ops FROM operations 
-                    WHERE DATE(created_at) = CURDATE()";
-            $stmt = $db->query($sql);
+                    WHERE DATE(created_at) = CURDATE() " . ($where ? " AND user_id = :user_id" : "");
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
             $todayResult = $stmt->fetch(PDO::FETCH_ASSOC);
             $stats['today_ops'] = $todayResult['today_ops'] ?? 0;
 
             // Melhor lucro
             $sql = "SELECT MAX(profit_percent) as best_profit FROM operations 
-                    WHERE profit_percent IS NOT NULL";
-            $stmt = $db->query($sql);
+                    WHERE profit_percent IS NOT NULL " . ($where ? " AND user_id = :user_id" : "");
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
             $bestResult = $stmt->fetch(PDO::FETCH_ASSOC);
             $stats['best_profit'] = $bestResult['best_profit'] ?? 0;
 
             // Lucro médio
             $sql = "SELECT AVG(profit_percent) as avg_profit FROM operations 
-                    WHERE profit_percent IS NOT NULL";
-            $stmt = $db->query($sql);
+                    WHERE profit_percent IS NOT NULL " . ($where ? " AND user_id = :user_id" : "");
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
             $avgResult = $stmt->fetch(PDO::FETCH_ASSOC);
             $stats['avg_profit'] = $avgResult['avg_profit'] ?? 0;
 
             // Dias médios até vencimento
             $sql = "SELECT AVG(days_to_maturity) as avg_days FROM operations 
-                    WHERE days_to_maturity > 0";
-            $stmt = $db->query($sql);
-            $daysResult = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['avg_days'] = $daysResult['avg_days'] ?? 0;
+                    WHERE days_to_maturity > 0 " . ($where ? " AND user_id = :user_id" : "");
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            $avgDaysResult = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['avg_days'] = $avgDaysResult['avg_days'] ?? 0;
 
         } catch (Exception $e) {
             // Log error but don't crash
@@ -93,11 +105,20 @@ class Operation
     {
         try {
             $db = self::getConnection();
-            $sql = "SELECT * FROM operations 
-                    ORDER BY created_at DESC 
-                    LIMIT :limit";
+            $sql = "SELECT * FROM operations ";
+            $params = [];
+
+            if (isset($_SESSION['user_id'])) {
+                $sql .= " WHERE user_id = :user_id ";
+                $params[':user_id'] = $_SESSION['user_id'];
+            }
+
+            $sql .= " ORDER BY created_at DESC LIMIT :limit";
 
             $stmt = $db->prepare($sql);
+            if (isset($_SESSION['user_id'])) {
+                $stmt->bindValue(':user_id', $_SESSION['user_id']);
+            }
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->execute();
 
@@ -115,14 +136,14 @@ class Operation
             $db = self::getConnection();
 
             $sql = "INSERT INTO operations (
-                symbol, current_price, strike_price, call_symbol, call_premium,
+                user_id, symbol, current_price, strike_price, call_symbol, call_premium,
                 put_symbol, put_premium, expiration_date, days_to_maturity,
                 initial_investment, max_profit, max_loss, profit_percent,
                 monthly_profit_percent, selic_annual, status, strategy_type,
                 risk_level, notes, quantity, lfts11_price, lfts11_quantity,
                 lfts11_investment, lfts11_return
             ) VALUES (
-                :symbol, :current_price, :strike_price, :call_symbol, :call_premium,
+                :user_id, :symbol, :current_price, :strike_price, :call_symbol, :call_premium,
                 :put_symbol, :put_premium, :expiration_date, :days_to_maturity,
                 :initial_investment, :max_profit, :max_loss, :profit_percent,
                 :monthly_profit_percent, :selic_annual, :status, :strategy_type,
@@ -133,6 +154,7 @@ class Operation
             $stmt = $db->prepare($sql);
 
             $params = [
+                ':user_id' => $data['user_id'] ?? ($_SESSION['user_id'] ?? null),
                 ':symbol' => $data['symbol'] ?? null,
                 ':current_price' => $data['current_price'] ?? null,
                 ':strike_price' => $data['strike_price'] ?? null,
@@ -179,6 +201,11 @@ class Operation
             $sql = "SELECT * FROM operations WHERE 1=1";
             $params = [];
 
+            if (isset($_SESSION['user_id'])) {
+                $sql .= " AND user_id = :user_id";
+                $params[':user_id'] = $_SESSION['user_id'];
+            }
+
             if (!empty($filters['status'])) {
                 $sql .= " AND status = :status";
                 $params[':status'] = $filters['status'];
@@ -207,8 +234,15 @@ class Operation
         try {
             $db = self::getConnection();
             $sql = "SELECT * FROM operations WHERE id = :id";
+            $params = [':id' => $id];
+
+            if (isset($_SESSION['user_id'])) {
+                $sql .= " AND user_id = :user_id";
+                $params[':user_id'] = $_SESSION['user_id'];
+            }
+
             $stmt = $db->prepare($sql);
-            $stmt->execute([':id' => $id]);
+            $stmt->execute($params);
 
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
@@ -223,9 +257,15 @@ class Operation
         try {
             $db = self::getConnection();
             $sql = "DELETE FROM operations WHERE id = :id";
-            $stmt = $db->prepare($sql);
+            $params = [':id' => $id];
 
-            return $stmt->execute([':id' => $id]);
+            if (isset($_SESSION['user_id'])) {
+                $sql .= " AND user_id = :user_id";
+                $params[':user_id'] = $_SESSION['user_id'];
+            }
+
+            $stmt = $db->prepare($sql);
+            return $stmt->execute($params);
         } catch (Exception $e) {
             error_log("Error deleting operation: " . $e->getMessage());
             return false;

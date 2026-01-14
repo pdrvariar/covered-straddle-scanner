@@ -577,7 +577,7 @@ $current_action = $_GET['action'] ?? 'dashboard';
                         <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
                            data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="user-info text-end me-2 d-none d-md-block">
-                                <div class="user-name"><?= htmlspecialchars($_SESSION['user_name'] ?? 'Usuário') ?></div>
+                                <div class="user-name"><?= htmlspecialchars($_SESSION['username'] ?? 'Usuário') ?></div>
                                 <div class="user-role">Trader Premium</div>
                             </div>
                             <div class="user-avatar">
@@ -590,7 +590,7 @@ $current_action = $_GET['action'] ?? 'dashboard';
                                 <div class="user-avatar mx-auto">
                                     <i class="fas fa-user fa-lg"></i>
                                 </div>
-                                <h6 class="mt-2 mb-0"><?= htmlspecialchars($_SESSION['user_name'] ?? 'Usuário') ?></h6>
+                                <h6 class="mt-2 mb-0"><?= htmlspecialchars($_SESSION['username'] ?? 'Usuário') ?></h6>
                                 <small class="text-white-50">Trader Premium</small>
                             </li>
 
@@ -616,7 +616,7 @@ $current_action = $_GET['action'] ?? 'dashboard';
                                     <i class="fas fa-question-circle text-primary me-3"></i>
                                     Ajuda & Suporte
                                 </a>
-                                <a class="dropdown-item text-danger" href="#">
+                                <a class="dropdown-item text-danger" href="/?action=logout">
                                     <i class="fas fa-sign-out-alt me-3"></i>
                                     Sair
                                 </a>

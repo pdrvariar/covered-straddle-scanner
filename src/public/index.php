@@ -85,6 +85,13 @@ parse_str($query ?? '', $params);
 
 // API routes
 if (strpos($path, '/api/') === 0) {
+    // Auth Check for API
+    if (!isset($_SESSION['user_id'])) {
+        header('HTTP/1.1 401 Unauthorized');
+        echo json_encode(['error' => 'Unauthorized']);
+        exit;
+    }
+
     require __DIR__ . '/../Controllers/ApiController.php';
     $api = new \App\Controllers\ApiController();
 
@@ -115,7 +122,25 @@ if (strpos($path, '/api/') === 0) {
 // Web routes
 $action = $params['action'] ?? 'dashboard';
 
+// Auth Check
+if (!isset($_SESSION['user_id']) && $action !== 'login') {
+    header('Location: /?action=login');
+    exit;
+}
+
 switch ($action) {
+    case 'login':
+        require __DIR__ . '/../Controllers/AuthController.php';
+        $controller = new \App\Controllers\AuthController();
+        $controller->login();
+        break;
+
+    case 'logout':
+        require __DIR__ . '/../Controllers/AuthController.php';
+        $controller = new \App\Controllers\AuthController();
+        $controller->logout();
+        break;
+
     case 'scan':
         require __DIR__ . '/../Controllers/ScannerController.php';
         $controller = new \App\Controllers\ScannerController();
