@@ -106,7 +106,7 @@ class OPLabAPIClient {
                 return [];
             }
 
-            $strikeLimit = $currentPrice * 0.03; // ±10% para ATM
+            $strikeLimit = $currentPrice * 0.02; // ±10% para ATM
             $maxAgeMs = 300000; // 5 minutos
             $nowMs = time() * 1000;
 
