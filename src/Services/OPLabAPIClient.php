@@ -116,7 +116,11 @@ class OPLabAPIClient {
             $atmOptions = [];
 
             foreach ($options as $option) {
-                // Já está filtrado por vencimento, então não precisa verificar
+                // Verificar explicitamente o vencimento (filtro de segurança)
+                $optionDueDate = $option['due_date'] ?? '';
+                if ($optionDueDate !== $expirationDate) {
+                    continue;
+                }
 
                 // Verificar se é CALL ou PUT
                 $category = $option['category'] ?? '';

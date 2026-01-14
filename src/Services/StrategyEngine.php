@@ -62,6 +62,16 @@ class StrategyEngine {
                 return null;
             }
 
+            // Filtrar apenas opções com o vencimento exato (garantia dupla)
+            $atmOptions = array_filter($atmOptions, function($opt) use ($expirationDate) {
+                return ($opt['due_date'] ?? '') === $expirationDate;
+            });
+
+            if (empty($atmOptions)) {
+                error_log("❌ Nenhuma opção com vencimento exato $expirationDate para $symbol");
+                return null;
+            }
+
             // Separar calls e puts
             $calls = array_filter($atmOptions, function($opt) {
                 return ($opt['category'] ?? '') === 'CALL';
