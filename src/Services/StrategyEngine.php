@@ -208,17 +208,21 @@ class StrategyEngine {
     }
 
     private function calculatePremium(array $option): float {
-        // Prioridade: close > bid/ask médio > bid
+        $bid = $option['bid'] ?? 0;
+        $ask = $option['ask'] ?? 0;
+
+        // Prioridade 1: Média do bid e ask
+        if ($bid > 0 && $ask > 0) {
+            return ($bid + $ask) / 2;
+        }
+
+        // Prioridade 2: Último negócio (close)
         if (!empty($option['close']) && $option['close'] > 0) {
             return $option['close'];
         }
 
-        $bid = $option['bid'] ?? 0;
-        $ask = $option['ask'] ?? 0;
-
-        if ($bid > 0 && $ask > 0) {
-            return ($bid + $ask) / 2;
-        } elseif ($bid > 0) {
+        // Prioridade 3: Apenas bid ou apenas ask
+        if ($bid > 0) {
             return $bid;
         } elseif ($ask > 0) {
             return $ask;
