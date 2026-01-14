@@ -30,8 +30,13 @@ spl_autoload_register(function ($class) {
 // Load environment
 $envFile = dirname(APP_BASE_PATH) . '/.env';
 if (!file_exists($envFile)) {
-    // Check if it's in /var/www/ (Docker common structure)
-    $envFile = '/var/www/.env';
+    // Check if it's in the same directory (Hostinger/manual upload)
+    $envFile = APP_BASE_PATH . '/.env';
+    
+    if (!file_exists($envFile)) {
+        // Check if it's in /var/www/ (Docker common structure)
+        $envFile = '/var/www/.env';
+    }
 }
 
 if (file_exists($envFile)) {
