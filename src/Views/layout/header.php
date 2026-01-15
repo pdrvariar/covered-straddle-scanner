@@ -89,6 +89,8 @@ $current_action = $_GET['action'] ?? 'dashboard';
             display: flex;
             min-height: calc(100vh - 120px);
             flex: 1;
+            gap: 0; /* Alterado de 10px para 0 */
+            align-items: flex-start;
         }
 
         /* Enhanced Header */
@@ -406,6 +408,16 @@ $current_action = $_GET['action'] ?? 'dashboard';
             100% { transform: translate(24px, 0); }
         }
 
+        /* 3. Ajustar o wrapper do conteúdo para não ter padding excessivo na esquerda */
+        main.content-wrapper {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 25px !important;
+            margin: 10px 10px 10px 0px; /* Adicionado margem para alinhar com a sidebar */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            min-height: calc(100vh - 160px);
+        }
+
         /* Content Area Spacing */
         .content-wrapper {
             margin-top: 20px;
@@ -416,13 +428,14 @@ $current_action = $_GET['action'] ?? 'dashboard';
             background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
             border-right: 1px solid rgba(0, 0, 0, 0.08);
             border-radius: 16px;
-            margin: 10px 5px 10px 10px;
+            /* Alterado: margem direita zerada para aproximar do conteúdo */
+            margin: 10px 0px 10px 10px;
             min-height: calc(100vh - 140px);
             transition: all 0.3s ease;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         }
 
-        .sidebar:hover {
+        .sidebar:hover {main.content-wrapper
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
         }
 
@@ -643,10 +656,10 @@ $current_action = $_GET['action'] ?? 'dashboard';
     </div>
 
     <!-- Desktop Sidebar - DIMINUIDO largura -->
-    <div class="d-none d-md-block col-md-3 col-lg-2 ps-3 pe-0">
+    <div class="d-none d-md-block col-md-4 col-lg-3 ps-3 pe-0">
         <?php include __DIR__ . '/sidebar.php'; ?>
     </div>
 
     <!-- Main Content Area - AUMENTADO proporção -->
-    <main class="col-md-9 col-lg-10 px-md-2 content-wrapper">
+    <main class="col-md-8 col-lg-9 px-md-2 content-wrapper">
         <div class="container-fluid py-3">
