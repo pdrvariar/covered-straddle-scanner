@@ -59,9 +59,11 @@ class ApiController {
                 }
             }
 
-            // Sort by profit percentage - MAIOR para MENOR
+            // Ordenar do MAIOR para o MENOR MSO (Margem de Segurança da Operação)
             usort($results, function($a, $b) {
-                return $b['profit_percent'] <=> $a['profit_percent'];
+                $msoA = $a['mso'] ?? 0;
+                $msoB = $b['mso'] ?? 0;
+                return $msoB <=> $msoA;
             });
 
             echo json_encode([

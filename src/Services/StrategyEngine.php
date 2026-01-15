@@ -173,9 +173,9 @@ class StrategyEngine {
                 return null;
             }
 
-            // Ordenar do MAIOR para o MENOR rendimento extrínseco (extrinsic_yield)
+            // Ordenar do MAIOR para o MENOR MSO (Margem de Segurança da Operação)
             usort($allStraddles, function($a, $b) {
-                return $b['extrinsic_yield'] <=> $a['extrinsic_yield'];
+                return $b['mso'] <=> $a['mso'];
             });
 
             error_log("🎉 Encontrados " . count($allStraddles) . " straddles para $symbol");

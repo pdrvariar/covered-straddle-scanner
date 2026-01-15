@@ -408,6 +408,21 @@ include __DIR__ . '/layout/header.php';
                                         </h4>
                                         <small>Até o strike</small>
                                     </div>
+                                    <div class="mb-3">
+                                        <small class="text-muted d-block">Margem de Segurança (MSO)</small>
+                                        <?php
+                                        $mso = $operation['mso'] ?? 0;
+                                        if ($mso == 0 && isset($operation['breakevens'])) {
+                                            $bep_min = !empty($operation['breakevens']) ? min($operation['breakevens']) : $operation['current_price'];
+                                            $mso = (($operation['current_price'] - $bep_min) / $operation['current_price']) * 100;
+                                        }
+                                        $msoClass = $mso > 0 ? 'text-info' : 'text-danger';
+                                        ?>
+                                        <h4 class="<?= $msoClass ?> mb-0">
+                                            <?= number_format($mso, 2, ',', '.') ?>%
+                                        </h4>
+                                        <small>Até o Ponto de Equilíbrio</small>
+                                    </div>
                                 </div>
                             </div>
 

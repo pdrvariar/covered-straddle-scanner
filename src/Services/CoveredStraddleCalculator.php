@@ -122,10 +122,17 @@ class CoveredStraddleCalculator {
             $payoff[] = $totalPayoff;
         }
 
-        // Calculate metrics
+        // Calcular métricas
         $maxProfit = max($payoff);
         $maxLoss = min($payoff);
         $breakevens = $this->findBreakevens($payoff, $priceRange);
+
+        // Ponto de Equilíbrio (BEP) inferior
+        $bep = !empty($breakevens) ? min($breakevens) : $currentPrice;
+
+        // Margem de Segurança da Operação (MSO)
+        // MSO = (Preço Atual - Ponto de Equilíbrio) / Preço Atual
+        $mso = (($currentPrice - $bep) / $currentPrice) * 100;
 
         $profitPercent = ($maxProfit / $initialInvestment) * 100;
         $monthlyProfit = $maxProfit * (30 / $daysToMaturity);
@@ -172,6 +179,8 @@ class CoveredStraddleCalculator {
 
             // Pontos de equilíbrio
             'breakevens' => $breakevens,
+            'bep' => $bep,
+            'mso' => $mso,
 
             // Análise de risco
             'margin_safety' => (($strike - $currentPrice) / $currentPrice) * 100,

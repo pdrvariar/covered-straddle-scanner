@@ -25,7 +25,7 @@ include __DIR__ . '/layout/header.php';
                 <div class="text-end">
                         <span class="badge bg-white text-primary fs-6">
                             <i class="fas fa-sort-amount-down me-1"></i>
-                            Ordenado por % Extrínseco/Strike
+                            Ordenado por Margem de Segurança (MSO)
                         </span>
                 </div>
             </div>
@@ -204,6 +204,20 @@ include __DIR__ . '/layout/header.php';
                                         <div class="d-flex justify-content-between">
                                             <small>Retorno Mensal</small>
                                             <small class="fw-bold"><?= number_format($res['monthly_profit_percent'], 2, ',', '.') ?>%</small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Pontos de Equilíbrio e Margem -->
+                                    <div class="p-2 mb-3 rounded border border-info-subtle bg-info-light">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small fw-bold">BEP / MSO</span>
+                                            <span class="badge bg-info text-white">
+                                                MSO: <?= number_format($res['mso'], 2, ',', '.') ?>%
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <small class="text-muted">Ponto de Equilíbrio (BEP):</small>
+                                            <small class="fw-bold">R$ <?= number_format($res['bep'], 2, ',', '.') ?></small>
                                         </div>
                                     </div>
 

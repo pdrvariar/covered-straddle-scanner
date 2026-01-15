@@ -81,11 +81,11 @@ class ScannerController {
                     }
                 }
 
-                // Ordenar do MAIOR para o MENOR rendimento extrínseco (extrinsic_yield)
+                // Ordenar do MAIOR para o MENOR MSO (Margem de Segurança da Operação)
                 usort($results, function($a, $b) {
-                    $yieldA = $a['extrinsic_yield'] ?? 0;
-                    $yieldB = $b['extrinsic_yield'] ?? 0;
-                    return $yieldB <=> $yieldA;
+                    $msoA = $a['mso'] ?? 0;
+                    $msoB = $b['mso'] ?? 0;
+                    return $msoB <=> $msoA;
                 });
 
                 // Store in session for later use
