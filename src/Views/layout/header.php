@@ -74,8 +74,8 @@ if (!isset($page_title)) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Custom CSS -->
-    <link href="<?= $base_url ?>/css/style.css?v=1.0.5" rel="stylesheet">
-    <link href="<?= $base_url ?>/css/dashboard.css?v=1.0.4" rel="stylesheet">
+    <link href="<?= $base_url ?>/css/style.css?v=1.0.6" rel="stylesheet">
+    <link href="<?= $base_url ?>/css/dashboard.css?v=1.0.7" rel="stylesheet">
 
     <!-- Additional CSS if any -->
     <?php if (isset($additional_css)): ?>
