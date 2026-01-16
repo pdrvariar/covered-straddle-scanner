@@ -28,7 +28,7 @@ class ScannerController {
             $accessToken = $_ENV['OPLAB_TOKEN'] ?? '';
             $tickersInput = $_POST['tickers'] ?? '';
             $expirationDate = $_POST['expiration_date'] ?? '';
-            $totalCapital = $_POST['total_capital'] ?? 50000;
+            $totalCapital = (float)($_POST['total_capital'] ?? 50000);
 
             if (empty($accessToken)) {
                 $_SESSION['error'] = 'Token de acesso OPLab não configurado no arquivo .env';

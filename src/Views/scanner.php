@@ -131,42 +131,20 @@ include __DIR__ . '/layout/header.php';
 
                 <!-- Right Column - Advanced Settings -->
                 <div class="col-lg-4">
-                    <!-- Capital Settings -->
+                    <!-- Expiration Settings -->
                     <div class="card scanner-card border-0 shadow-lg h-100">
                         <div class="card-header bg-transparent border-0 pb-0">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="card-icon-wrapper bg-warning">
-                                    <i class="fas fa-wallet"></i>
+                                    <i class="fas fa-calendar-alt"></i>
                                 </div>
                                 <div class="ms-3">
-                                    <h5 class="card-title mb-1">Capital</h5>
-                                    <p class="text-muted small mb-0">Configure seu capital disponível</p>
+                                    <h5 class="card-title mb-1">Vencimento</h5>
+                                    <p class="text-muted small mb-0">Selecione a data de vencimento</p>
                                 </div>
                             </div>
                         </div>
                         <div class="card-body pt-0">
-                            <div class="mb-4">
-                                <label for="total_capital" class="form-label fw-semibold">
-                                    <i class="fas fa-money-bill-wave me-2"></i>
-                                    Capital Total (R$)
-                                </label>
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text bg-light">R$</span>
-                                    <input type="number"
-                                           class="form-control"
-                                           id="total_capital"
-                                           name="total_capital"
-                                           min="1000"
-                                           step="1000"
-                                           value="50000"
-                                           required>
-                                </div>
-                                <div class="form-text mt-2">
-                                    <small>Capital disponível para investimento</small>
-                                </div>
-                            </div>
-
-                            <!-- Expiration Settings -->
                             <div class="mb-4">
                                 <label for="expiration_date" class="form-label fw-semibold">
                                     <i class="fas fa-calendar-alt me-2"></i>
@@ -513,7 +491,8 @@ ob_start();
                 // Reset expiration date
                 const defaultDate = new Date();
                 defaultDate.setDate(defaultDate.getDate() + 30);
-                document.getElementById('expiration_date').value = defaultDate.toISOString().split('T')[0];
+                const expInput = document.getElementById('expiration_date');
+                if (expInput) expInput.value = defaultDate.toISOString().split('T')[0];
 
                 showTickerFeedback('Formulário resetado para valores padrão!', 'info');
             }
@@ -624,6 +603,7 @@ ob_start();
             // Ignorar se o usuário estiver digitando em campos de texto (exceto o próprio lucro)
             const activeElement = document.activeElement;
             const isInput = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA';
+
             const isTargetProfit = activeElement.id === 'min_profit';
 
             if (isInput && !isTargetProfit) {
