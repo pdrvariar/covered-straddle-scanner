@@ -112,11 +112,32 @@ include __DIR__ . '/layout/header.php';
                                 </div>
                                 <div class="col-md-3 text-center">
                                     <div class="py-2">
-                                        <small class="text-muted d-block text-uppercase mb-1">Break-even</small>
-                                        <h2 class="h3 fw-bold text-warning mb-0">
-                                            R$ <span id="resumo-bep"><?= number_format($bep, 2, ',', '.') ?></span>
+                                        <small class="text-muted d-block text-uppercase mb-1">BEP / MSO</small>
+                                        <?php
+                                        $mso_resumo = $operation['mso'] ?? 0;
+                                        if ($mso_resumo == 0 && isset($operation['breakevens'])) {
+                                            $bep_min_resumo = !empty($operation['breakevens']) ? min($operation['breakevens']) : $operation['current_price'];
+                                            $mso_resumo = (($operation['current_price'] - $bep_min_resumo) / $operation['current_price']) * 100;
+                                        }
+                                        $msoClass_resumo = $mso_resumo > 0 ? 'text-info' : 'text-danger';
+                                        ?>
+                                        <h2 class="h3 fw-bold <?= $msoClass_resumo ?> mb-0">
+                                            MSO: <span id="resumo-mso"><?= number_format($mso_resumo, 2, ',', '.') ?></span>%
                                         </h2>
-                                        <small class="text-muted">Preço da ação</small>
+                                        <small class="text-muted">
+                                            <?php if (!empty($operation['breakevens'])): ?>
+                                                <?php 
+                                                $min_bep = min($operation['breakevens']);
+                                                $max_bep = max($operation['breakevens']);
+                                                ?>
+                                                BEP: R$ <?= number_format($min_bep, 2, ',', '.') ?>
+                                                <?php if ($min_bep != $max_bep): ?>
+                                                    - R$ <?= number_format($max_bep, 2, ',', '.') ?>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                BEP: R$ <span id="resumo-bep"><?= number_format($bep, 2, ',', '.') ?></span>
+                                            <?php endif; ?>
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -418,8 +439,8 @@ include __DIR__ . '/layout/header.php';
                                         }
                                         $msoClass = $mso > 0 ? 'text-info' : 'text-danger';
                                         ?>
-                                        <h4 class="<?= $msoClass ?> mb-0">
-                                            <?= number_format($mso, 2, ',', '.') ?>%
+                                        <h4 class="<?= $msoClass ?> mb-0" id="indicador-mso-container">
+                                            <span id="indicador-mso"><?= number_format($mso, 2, ',', '.') ?></span>%
                                         </h4>
                                         <small>Até o Ponto de Equilíbrio</small>
                                     </div>
@@ -714,11 +735,33 @@ function updateCalculations() {
 
         operationData.breakevens = [bep];
         setElText('resumo-bep', formatBR(bep));
+
+        // Atualizar MSO (Margem de Segurança)
+        const mso = currentPrice > 0 ? ((currentPrice - bep) / currentPrice) * 100 : 0;
+        setElText('resumo-mso', formatBR(mso));
+        setElText('indicador-mso', formatBR(mso));
         
-        // Atualizar lista de BEPs
+        // Atualizar cor do MSO
+        const msoEl = document.getElementById('resumo-mso');
+        if (msoEl && msoEl.closest('h2')) {
+            msoEl.closest('h2').className = `h3 fw-bold ${mso > 0 ? 'text-info' : 'text-danger'} mb-0`;
+        }
+        
+        const msoInd = document.getElementById('indicador-mso-container');
+        if (msoInd) {
+            msoInd.className = `${mso > 0 ? 'text-info' : 'text-danger'} mb-0`;
+        }
+
+        // Atualizar lista de BEPs e Resumo BEP
         const breakevensList = document.getElementById('breakevens-list');
+        const resumoBepContainer = document.querySelector('.col-md-3.text-center:last-child small.text-muted');
+        
         if (breakevensList) {
             breakevensList.innerHTML = `<span class="badge bg-info">R$ ${formatBR(bep)}</span>`;
+        }
+
+        if (resumoBepContainer) {
+            resumoBepContainer.innerHTML = `BEP: R$ <span id="resumo-bep">${formatBR(bep)}</span>`;
         }
 
         // Perda Máxima (Ação a zero)
