@@ -51,7 +51,7 @@ $current_action = $_GET['action'] ?? 'dashboard';
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Custom CSS -->
-    <link href="<?= $base_url ?>/css/style.css" rel="stylesheet">
+    <link href="<?= $base_url ?>/css/style.css?v=1.0.1" rel="stylesheet">
 
     <!-- Dashboard CSS -->
     <link href="<?= $base_url ?>/css/dashboard.css" rel="stylesheet">
@@ -435,8 +435,17 @@ $current_action = $_GET['action'] ?? 'dashboard';
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         }
 
-        .sidebar:hover {main.content-wrapper
+        .sidebar:hover {
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        main.content-wrapper {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 25px !important;
+            margin: 10px 10px 10px 0px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            min-height: calc(100vh - 160px);
         }
 
         .sidebar .nav-link {
@@ -656,10 +665,7 @@ $current_action = $_GET['action'] ?? 'dashboard';
     </div>
 
     <!-- Desktop Sidebar - DIMINUIDO largura -->
-    <div class="d-none d-md-block col-md-4 col-lg-3 ps-3 pe-0">
-        <?php include __DIR__ . '/sidebar.php'; ?>
+    <div class="d-none d-md-block col-md-4 col-lg-3 ps-3 pe-0"> <?php include __DIR__ . '/sidebar.php'; ?>
     </div>
 
-    <!-- Main Content Area - AUMENTADO proporção -->
-    <main class="col-md-8 col-lg-9 px-md-2 content-wrapper">
-        <div class="container-fluid py-3">
+    <main class="col-md-8 col-lg-9 ps-0 pe-2 content-wrapper"> <div class="container-fluid py-3">
