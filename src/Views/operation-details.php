@@ -85,14 +85,27 @@ include __DIR__ . '/layout/header.php';
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-3 text-center border-end">
-                                    <div class="py-2">
-                                        <small class="text-muted d-block text-uppercase mb-1">Quantidade</small>
-                                        <h2 class="h3 fw-bold mb-0"><?= number_format($operation['quantity'] / 100, 1, ',', '.') ?></h2>
-                                        <small class="text-muted"><?= number_format($operation['quantity'], 0, ',', '.') ?> ações</small>
+                                <div class="col-md-4 text-center border-end">
+                                    <div class="py-2 px-3">
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-6">
+                                                <small class="text-muted d-block text-uppercase mb-1">Quantidade</small>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="number" step="100" class="form-control text-center fw-bold" id="input-quantity" value="<?= $operation['quantity'] ?>" oninput="updateCalculations()">
+                                                    <span class="input-group-text p-1" style="font-size: 0.7rem;">Ações</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted d-block text-uppercase mb-1">Total Aplicar</small>
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text p-1" style="font-size: 0.7rem;">R$</span>
+                                                    <input type="number" step="100" class="form-control text-center fw-bold" id="input-total-invest" value="<?= round($stockInvestment + ($operation['lfts11_investment'] ?? 0)) ?>" oninput="updateQuantityFromTotal()">
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3 text-center border-end">
+                                <div class="col-md-2 text-center border-end">
                                     <div class="py-2">
                                         <small class="text-muted d-block text-uppercase mb-1">Retorno</small>
                                         <h2 class="h3 fw-bold text-success mb-0">
@@ -101,7 +114,7 @@ include __DIR__ . '/layout/header.php';
                                         <small class="text-muted">Total período</small>
                                     </div>
                                 </div>
-                                <div class="col-md-3 text-center border-end">
+                                <div class="col-md-2 text-center border-end">
                                     <div class="py-2">
                                         <small class="text-muted d-block text-uppercase mb-1">Mensal</small>
                                         <h2 class="h3 fw-bold text-info mb-0">
@@ -110,7 +123,7 @@ include __DIR__ . '/layout/header.php';
                                         <small class="text-muted">Projeção mensal</small>
                                     </div>
                                 </div>
-                                <div class="col-md-3 text-center">
+                                <div class="col-md-4 text-center">
                                     <div class="py-2">
                                         <small class="text-muted d-block text-uppercase mb-1">BEP / MSO</small>
                                         <?php
@@ -121,23 +134,25 @@ include __DIR__ . '/layout/header.php';
                                         }
                                         $msoClass_resumo = $mso_resumo > 0 ? 'text-info' : 'text-danger';
                                         ?>
-                                        <h2 class="h3 fw-bold <?= $msoClass_resumo ?> mb-0">
-                                            MSO: <span id="resumo-mso"><?= number_format($mso_resumo, 2, ',', '.') ?></span>%
-                                        </h2>
-                                        <small class="text-muted">
-                                            <?php if (!empty($operation['breakevens'])): ?>
-                                                <?php 
-                                                $min_bep = min($operation['breakevens']);
-                                                $max_bep = max($operation['breakevens']);
-                                                ?>
-                                                BEP: R$ <?= number_format($min_bep, 2, ',', '.') ?>
-                                                <?php if ($min_bep != $max_bep): ?>
-                                                    - R$ <?= number_format($max_bep, 2, ',', '.') ?>
+                                        <div class="d-flex align-items-baseline justify-content-center gap-2">
+                                            <h2 class="h3 fw-bold <?= $msoClass_resumo ?> mb-0">
+                                                MSO: <span id="resumo-mso"><?= number_format($mso_resumo, 2, ',', '.') ?></span>%
+                                            </h2>
+                                            <small class="text-muted">
+                                                <?php if (!empty($operation['breakevens'])): ?>
+                                                    <?php 
+                                                    $min_bep = min($operation['breakevens']);
+                                                    $max_bep = max($operation['breakevens']);
+                                                    ?>
+                                                    BEP: R$ <?= number_format($min_bep, 2, ',', '.') ?>
+                                                    <?php if ($min_bep != $max_bep): ?>
+                                                        - <?= number_format($max_bep, 2, ',', '.') ?>
+                                                    <?php endif; ?>
+                                                <?php else: ?>
+                                                    BEP: R$ <span id="resumo-bep"><?= number_format($bep, 2, ',', '.') ?></span>
                                                 <?php endif; ?>
-                                            <?php else: ?>
-                                                BEP: R$ <span id="resumo-bep"><?= number_format($bep, 2, ',', '.') ?></span>
-                                            <?php endif; ?>
-                                        </small>
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -164,22 +179,23 @@ include __DIR__ . '/layout/header.php';
                             </div>
                             <div class="mb-3">
                                 <small class="text-muted d-block text-uppercase small fw-bold">Preço por Ação</small>
-                                <p class="h4 fw-bold mb-0">
-                                    R$ <?= number_format($operation['current_price'], 2, ',', '.') ?>
-                                </p>
+                                <div class="input-group input-group-sm mt-1" style="max-width: 150px;">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" step="0.01" class="form-control fw-bold" id="input-current-price" value="<?= $operation['current_price'] ?>" oninput="updateCalculations()">
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <small class="text-muted d-block text-uppercase small fw-bold">Quantidade Total</small>
                                 <p class="mb-0">
-                                    <strong><?= number_format($operation['quantity'], 0, ',', '.') ?></strong> ações
+                                    <strong id="display-quantity"><?= number_format($operation['quantity'], 0, ',', '.') ?></strong> ações
                                 </p>
                             </div>
                             <div class="p-3 bg-light rounded border">
-                                <small class="text-muted d-block text-uppercase small fw-bold">Investimento Total</small>
+                                <small class="text-muted d-block text-uppercase small fw-bold">Investimento em Ações</small>
                                 <h5 class="mb-0 text-success fw-bold">
-                                    R$ <?= number_format($stockInvestment, 2, ',', '.') ?>
+                                    R$ <span id="display-stock-investment"><?= number_format($stockInvestment, 2, ',', '.') ?></span>
                                 </h5>
-                                <small class="text-muted"><?= number_format($operation['quantity'] / 100, 1, ',', '.') ?> lotes padrão</small>
+                                <small id="display-lotes" class="text-muted"><?= number_format($operation['quantity'] / 100, 1, ',', '.') ?> lotes padrão</small>
                             </div>
                         </div>
                     </div>
@@ -285,24 +301,24 @@ include __DIR__ . '/layout/header.php';
                             <div class="mb-3">
                                 <small class="text-muted d-block">Garantia Necessária</small>
                                 <p class="mb-0">
-                                    Para cobrir <?= number_format($operation['quantity'], 0, ',', '.') ?> PUTs de strike R$ <?= number_format($operation['strike_price'], 2, ',', '.') ?>
+                                    Para cobrir <span id="display-quantity-guarantee"><?= number_format($operation['quantity'], 0, ',', '.') ?></span> PUTs de strike R$ <?= number_format($operation['strike_price'], 2, ',', '.') ?>
                                 </p>
                                 <h5 class="text-primary mt-1">
-                                    R$ <?= number_format($totalGuaranteeNeeded, 2, ',', '.') ?>
+                                    R$ <span id="display-guarantee-needed"><?= number_format($totalGuaranteeNeeded, 2, ',', '.') ?></span>
                                 </h5>
                             </div>
 
                             <div class="mb-3">
-                                <small class="text-muted d-block">Cotias de LFTS11 Necessárias</small>
+                                <small class="text-muted d-block">Cotas de LFTS11 Necessárias</small>
                                 <p class="mb-0">
-                                    <strong><?= number_format($operation['lfts11_quantity'] ?? 0, 0, ',', '.') ?></strong> cotas
+                                    <strong id="display-lfts-quantity"><?= number_format($operation['lfts11_quantity'] ?? 0, 0, ',', '.') ?></strong> cotas
                                 </p>
                             </div>
 
                             <div class="p-3 bg-light rounded">
                                 <small class="text-muted d-block">Investimento em Garantias</small>
                                 <h5 class="mb-0 text-info">
-                                    R$ <?= number_format($operation['lfts11_investment'] ?? 0, 2, ',', '.') ?>
+                                    R$ <span id="display-lfts-investment"><?= number_format($operation['lfts11_investment'] ?? 0, 2, ',', '.') ?></span>
                                 </h5>
                                 <small>Rende <?= number_format($operation['selic_annual'] * 100, 2, ',', '.') ?>% a.a.</small>
                             </div>
@@ -327,12 +343,12 @@ include __DIR__ . '/layout/header.php';
 
                                 <div class="investment-item d-flex justify-content-between">
                                     <span>Compra de Ações:</span>
-                                    <span class="text-danger">- R$ <?= number_format($stockInvestment, 2, ',', '.') ?></span>
+                                    <span class="text-danger">- R$ <span id="financeira-stock-investment"><?= number_format($stockInvestment, 2, ',', '.') ?></span></span>
                                 </div>
 
                                 <div class="investment-item d-flex justify-content-between">
                                     <span>Investimento em LFTS11:</span>
-                                    <span class="text-danger">- R$ <?= number_format($operation['lfts11_investment'] ?? 0, 2, ',', '.') ?></span>
+                                    <span class="text-danger">- R$ <span id="financeira-lfts-investment"><?= number_format($operation['lfts11_investment'] ?? 0, 2, ',', '.') ?></span></span>
                                 </div>
 
                                 <div class="investment-item d-flex justify-content-between">
@@ -342,7 +358,7 @@ include __DIR__ . '/layout/header.php';
 
                                 <div class="investment-item d-flex justify-content-between">
                                     <span>Retorno do LFTS11 (<?= $operation['days_to_maturity'] ?> dias):</span>
-                                    <span class="text-success">+ R$ <?= number_format($operation['lfts11_return'] ?? 0, 2, ',', '.') ?></span>
+                                    <span class="text-success">+ R$ <span id="financeira-lfts-return"><?= number_format($operation['lfts11_return'] ?? 0, 2, ',', '.') ?></span></span>
                                 </div>
 
                                 <hr>
@@ -649,29 +665,73 @@ function formatBR(val, decimals = 2) {
 }
 
 /**
+ * Atualiza a quantidade baseada no valor total que o usuário quer aplicar
+ */
+function updateQuantityFromTotal() {
+    const totalInvestInput = document.getElementById('input-total-invest');
+    const currentPriceInput = document.getElementById('input-current-price');
+    const quantityInput = document.getElementById('input-quantity');
+    
+    if (!totalInvestInput || !currentPriceInput || !quantityInput) return;
+
+    const totalToApply = parseFloat(totalInvestInput.value) || 0;
+    const currentPrice = parseFloat(currentPriceInput.value) || 0;
+    const strike = operationData.strike_price;
+    const lftsPrice = <?= $lfts11Data['price'] ?>;
+
+    if (currentPrice > 0) {
+        // Cálculo do valor por lote de 100:
+        // (100 * preço_ação) + (ceil(100 * strike / lfts_price) * lfts_price)
+        const lftsQtyPer100 = Math.ceil((100 * strike) / lftsPrice);
+        const costPer100 = (100 * currentPrice) + (lftsQtyPer100 * lftsPrice);
+        
+        const numLotes = Math.floor(totalToApply / costPer100);
+        const newQuantity = Math.max(100, numLotes * 100);
+        
+        quantityInput.value = newQuantity;
+        updateCalculations(false); // Não reseta o campo de investimento total
+    }
+}
+
+/**
  * Atualiza todos os cálculos quando os prêmios mudam
  */
-function updateCalculations() {
+function updateCalculations(updateTotalInvestInput = true) {
     try {
         const callPremiumInput = document.getElementById('input-call-premium');
         const putPremiumInput = document.getElementById('input-put-premium');
+        const currentPriceInput = document.getElementById('input-current-price');
+        const quantityInput = document.getElementById('input-quantity');
+        const totalInvestInput = document.getElementById('input-total-invest');
         
-        if (!callPremiumInput || !putPremiumInput) return;
+        if (!callPremiumInput || !putPremiumInput || !currentPriceInput || !quantityInput) return;
 
         const callPremium = parseFloat(callPremiumInput.value) || 0;
         const putPremium = parseFloat(putPremiumInput.value) || 0;
+        const currentPrice = parseFloat(currentPriceInput.value) || 0;
+        const quantity = parseFloat(quantityInput.value) || 0;
         
-        // Usar valores já convertidos em operationData
-        const quantity = operationData.quantity;
         const strike = operationData.strike_price;
-        const currentPrice = operationData.current_price;
-        const lftsInvestment = operationData.lfts11_investment;
-        const lftsReturn = operationData.lfts11_return;
+        const lftsPrice = <?= $lfts11Data['price'] ?>;
+        const selicAnnual = <?= $operation['selic_annual'] ?? 0.13 ?>;
+        const daysToMaturity = parseInt(operationData.days_to_maturity) || 30;
+
+        // Recalcular valores de LFTS11 baseados na nova quantidade/preço
+        const guaranteeNeeded = strike * quantity;
+        const lftsQuantity = Math.ceil(guaranteeNeeded / lftsPrice);
+        const lftsInvestment = lftsQuantity * lftsPrice;
+        const selicPeriodReturn = selicAnnual * (daysToMaturity / 365);
+        const lftsReturn = lftsInvestment * selicPeriodReturn;
         const stockInvestment = currentPrice * quantity;
 
         // Atualizar objeto operationData para persistência/exportação
         operationData.call_premium = callPremium;
         operationData.put_premium = putPremium;
+        operationData.current_price = currentPrice;
+        operationData.quantity = quantity;
+        operationData.lfts11_investment = lftsInvestment;
+        operationData.lfts11_return = lftsReturn;
+        operationData.lfts11_quantity = lftsQuantity;
 
         // Cálculos Básicos
         const callTotalRevenue = callPremium * quantity;
@@ -689,6 +749,26 @@ function updateCalculations() {
         setElText('put-total-revenue', formatBR(putTotalRevenue));
         setElText('total-premiums-badge', formatBR(totalPremiums));
         setElText('total-premiums-financeira', formatBR(totalPremiums));
+        
+        // Atualizar displays de quantidade e investimento
+        setElText('display-quantity', formatBR(quantity, 0));
+        setElText('display-quantity-guarantee', formatBR(quantity, 0));
+        setElText('display-stock-investment', formatBR(stockInvestment));
+        setElText('display-lotes', formatBR(quantity / 100, 1) + ' lotes padrão');
+        
+        // Atualizar displays de LFTS11
+        setElText('display-guarantee-needed', formatBR(guaranteeNeeded));
+        setElText('display-lfts-quantity', formatBR(lftsQuantity, 0));
+        setElText('display-lfts-investment', formatBR(lftsInvestment));
+        
+        // Atualizar Análise Financeira
+        setElText('financeira-stock-investment', formatBR(stockInvestment));
+        setElText('financeira-lfts-investment', formatBR(lftsInvestment));
+        setElText('financeira-lfts-return', formatBR(lftsReturn));
+
+        if (updateTotalInvestInput && totalInvestInput) {
+            totalInvestInput.value = Math.round(stockInvestment + lftsInvestment);
+        }
 
         // Investimento Líquido Inicial
         const initialInvestment = stockInvestment + lftsInvestment - totalPremiums;
