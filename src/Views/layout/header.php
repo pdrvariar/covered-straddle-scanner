@@ -425,7 +425,7 @@ if (!isset($page_title)) {
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 9999;
+            z-index: 9998; /* Reduzido de 9999 para 9998 */
             opacity: 1;
             visibility: visible;
             transition: opacity 0.5s ease, visibility 0.5s ease;
@@ -434,6 +434,7 @@ if (!isset($page_title)) {
         .page-loader.hidden {
             opacity: 0;
             visibility: hidden;
+            pointer-events: none; /* Importante: não interfere com cliques */
         }
 
         .loader-content {

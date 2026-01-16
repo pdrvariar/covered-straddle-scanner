@@ -1083,3 +1083,42 @@ main.content-wrapper {
         border-radius: 14px;
     }
 }
+
+/* ===== CORREÇÃO DE Z-INDEX PARA BOTÕES ===== */
+.btn {
+    position: relative;
+    z-index: 100 !important;
+}
+
+/* Garantir que os botões de ação estejam acessíveis */
+.btn-success, .btn-primary, .btn-outline-primary {
+    z-index: 1000 !important;
+}
+
+/* Correção específica para botões na página de detalhes */
+.detail-card .btn {
+    z-index: 10 !important;
+}
+
+/* Ajustar alertContainer para não interferir */
+#alertContainer {
+    z-index: 1050;
+    pointer-events: none; /* Permite clicar através do container */
+}
+
+#alertContainer .alert {
+    pointer-events: auto; /* Mas os alerts dentro são clicáveis */
+}
+
+/* Garantir que content-wrapper esteja acima */
+.content-wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+/* Botões de ação específicos */
+button[onclick*="saveOperation"],
+button.btn-success {
+    position: relative;
+    z-index: 1000 !important;
+}

@@ -46,18 +46,30 @@
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     });
 
-    // Preloader handler
+    // Preloader handler - CORRIGIDO
     window.addEventListener('load', function() {
         const pageLoader = document.getElementById('pageLoader');
         if (pageLoader) {
+            // Remover imediatamente sem delay extra
+            pageLoader.style.opacity = '0';
+            pageLoader.style.transition = 'opacity 0.3s ease';
+
             setTimeout(() => {
-                pageLoader.classList.add('hidden');
-                setTimeout(() => {
-                    pageLoader.style.display = 'none';
-                }, 500);
-            }, 500);
+                pageLoader.style.display = 'none';
+                // Garantir que está removido do fluxo
+                pageLoader.remove();
+            }, 300);
         }
     });
+
+    // Fallback: se ainda estiver visível após 5 segundos, forçar remoção
+    setTimeout(() => {
+        const pageLoader = document.getElementById('pageLoader');
+        if (pageLoader && pageLoader.style.display !== 'none') {
+            pageLoader.style.display = 'none';
+            pageLoader.remove();
+        }
+    }, 5000);
 
     // Sticky sidebar on scroll
     window.addEventListener('scroll', function() {

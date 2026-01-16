@@ -43,7 +43,7 @@ if (!isset($operation['lfts11_investment']) || $operation['lfts11_investment'] =
 <?php
 include __DIR__ . '/layout/header.php';
 ?>
-    <div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
+    <div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1050; pointer-events: none;"></div>
     <div class="content-wrapper">
         <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
@@ -896,15 +896,25 @@ async function saveOperation(event) {
         const result = await response.json();
 
         if (result.success) {
+            // Se existir a função global showNotification (de notifications.js)
             if (typeof showNotification === 'function') {
                 showNotification('Operação salva com sucesso!', 'success');
+            } else if (typeof showSuccess === 'function') {
+                showSuccess('Operação salva com sucesso!');
             } else {
                 alert('Operação salva com sucesso!');
             }
 
             if (btn) {
                 btn.innerHTML = '<i class="fas fa-check me-2"></i>Salvo!';
-                btn.className = 'btn btn-outline-success shadow-sm';
+                btn.className = 'btn btn-success shadow-sm'; // Mudado de btn-outline-success para btn-success para maior destaque
+                
+                // Opcional: Voltar ao estado original após alguns segundos
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    btn.className = 'btn btn-success shadow-sm';
+                }, 3000);
             }
         } else {
             throw new Error(result.error || 'Erro desconhecido ao salvar');
