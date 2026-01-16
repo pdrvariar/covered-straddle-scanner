@@ -125,7 +125,7 @@ include __DIR__ . '/layout/header.php';
                                 </div>
                                 <div class="col-md-4 text-center">
                                     <div class="py-2">
-                                        <small class="text-muted d-block text-uppercase mb-1">BEP / MSO</small>
+                                        <small class="text-muted d-block text-uppercase mb-1">MSO</small>
                                         <?php
                                         $mso_resumo = $operation['mso'] ?? 0;
                                         if ($mso_resumo == 0 && isset($operation['breakevens'])) {
@@ -138,20 +138,6 @@ include __DIR__ . '/layout/header.php';
                                             <h2 class="h3 fw-bold <?= $msoClass_resumo ?> mb-0">
                                                 MSO: <span id="resumo-mso"><?= number_format($mso_resumo, 2, ',', '.') ?></span>%
                                             </h2>
-                                            <small class="text-muted">
-                                                <?php if (!empty($operation['breakevens'])): ?>
-                                                    <?php 
-                                                    $min_bep = min($operation['breakevens']);
-                                                    $max_bep = max($operation['breakevens']);
-                                                    ?>
-                                                    BEP: R$ <?= number_format($min_bep, 2, ',', '.') ?>
-                                                    <?php if ($min_bep != $max_bep): ?>
-                                                        - <?= number_format($max_bep, 2, ',', '.') ?>
-                                                    <?php endif; ?>
-                                                <?php else: ?>
-                                                    BEP: R$ <span id="resumo-bep"><?= number_format($bep, 2, ',', '.') ?></span>
-                                                <?php endif; ?>
-                                            </small>
                                         </div>
                                     </div>
                                 </div>
@@ -814,7 +800,7 @@ function updateCalculations(updateTotalInvestInput = true) {
         }
 
         operationData.breakevens = [bep];
-        setElText('resumo-bep', formatBR(bep));
+        // setElText('resumo-bep', formatBR(bep));
 
         // Atualizar MSO (Margem de Segurança)
         const mso = currentPrice > 0 ? ((currentPrice - bep) / currentPrice) * 100 : 0;
@@ -840,9 +826,11 @@ function updateCalculations(updateTotalInvestInput = true) {
             breakevensList.innerHTML = `<span class="badge bg-info">R$ ${formatBR(bep)}</span>`;
         }
 
+        /*
         if (resumoBepContainer) {
             resumoBepContainer.innerHTML = `BEP: R$ <span id="resumo-bep">${formatBR(bep)}</span>`;
         }
+        */
 
         // Perda Máxima (Ação a zero)
         // Prejuízo em S=0: (-currentPrice - strike) * Qty + Premiums + lftsReturn
