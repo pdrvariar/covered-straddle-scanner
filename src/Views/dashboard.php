@@ -1,5 +1,5 @@
 <!-- Conteúdo do Dashboard -->
-<div class="pt-3 pb-2 mb-3 border-bottom">
+<div class="content-wrapper">
     <!-- Cabeçalho -->
     <div class="page-header-gradient mb-4">
         <div class="d-flex justify-content-between align-items-center">

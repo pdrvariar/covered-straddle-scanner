@@ -11,7 +11,7 @@ $page_title = 'Operações - Covered Straddle Scanner';
 include __DIR__ . '/layout/header.php';
 ?>
 
-    <div class="content-wrapper mt-4 pt-3">
+    <div class="content-wrapper">
         <!-- Cabeçalho -->
         <div class="page-header-gradient mb-4">
             <div class="d-flex justify-content-between align-items-center">

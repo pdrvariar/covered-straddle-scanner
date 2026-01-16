@@ -6,7 +6,7 @@ $page_title = 'Scanner de Opções - Covered Straddle';
 include __DIR__ . '/layout/header.php';
 ?>
 
-    <div class="py-4">
+    <div class="content-wrapper">
         <!-- Cabeçalho -->
         <div class="page-header-gradient mb-4">
             <div class="d-flex justify-content-between align-items-center">

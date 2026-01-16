@@ -55,7 +55,7 @@
         </div>
 
         <!-- Sidebar Footer -->
-        <div class="mt-5 px-3">
+        <div class="mt-auto px-3">
             <div class="text-center p-3 rounded-3" style="background: rgba(0, 0, 0, 0.05);">
                 <small class="text-muted d-block mb-2">
                     <i class="fas fa-shield-alt me-1"></i>

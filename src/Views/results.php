@@ -9,9 +9,9 @@ $page_title = 'Resultados do Scanner - Covered Straddle';
 include __DIR__ . '/layout/header.php';
 ?>
 
-    <div class="py-4">
+    <div class="content-wrapper">
         <!-- Cabeçalho -->
-        <div class="page-header-gradient">
+        <div class="page-header-gradient mb-4">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="h2 mb-2">

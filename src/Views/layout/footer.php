@@ -1,18 +1,18 @@
+</div> <!-- Fecha .content-card -->
 </main>
-</div>
-</div> <!-- End container-fluid -->
+</div> <!-- Fecha .app-container -->
 
 <!-- Footer -->
-<footer class="footer py-3 border-top">
-    <div class="container-fluid h-100">
-        <div class="row align-items-center h-100">
+<footer class="footer py-3 border-top bg-white">
+    <div class="container-fluid">
+        <div class="row align-items-center">
             <div class="col-md-6">
                 <p class="mb-0 text-muted small">
                     <i class="fas fa-copyright me-1"></i>
                     <?= date('Y') ?> <strong>Covered Straddle Scanner</strong>. Todos os direitos reservados.
                 </p>
             </div>
-            <div class="col-md-6 text-end">
+            <div class="col-md-6 text-md-end">
                 <div class="d-inline-flex align-items-center text-muted small">
                     <span class="me-3">
                         <i class="fas fa-server me-1 opacity-50"></i>
@@ -32,97 +32,51 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Layout Enhancement -->
-<script src="<?= $base_url ?? '' ?>/js/layout.js"></script>
+<script>
+    // Toggle Sidebar Mobile
+    function toggleSidebar() {
+        const sidebar = document.getElementById('mobileSidebar');
+        const offcanvas = new bootstrap.Offcanvas(sidebar);
+        offcanvas.show();
+    }
 
-<!-- Custom JS -->
-<script src="<?= $base_url ?? '' ?>/js/main.js"></script>
+    // Inicializar tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    });
 
-<?php if (isset($additional_js)): ?>
-    <?php foreach ($additional_js as $js): ?>
-        <script src="<?= $js ?>"></script>
-    <?php endforeach; ?>
-<?php endif; ?>
+    // Preloader handler
+    window.addEventListener('load', function() {
+        const pageLoader = document.getElementById('pageLoader');
+        if (pageLoader) {
+            setTimeout(() => {
+                pageLoader.classList.add('hidden');
+                setTimeout(() => {
+                    pageLoader.style.display = 'none';
+                }, 500);
+            }, 500);
+        }
+    });
 
-<!-- Page-specific JS -->
+    // Sticky sidebar on scroll
+    window.addEventListener('scroll', function() {
+        const sidebar = document.getElementById('desktopSidebar');
+        if (sidebar && window.innerWidth >= 992) {
+            if (window.scrollY > 40) {
+                sidebar.style.top = '10px';
+            } else {
+                sidebar.style.top = '60px';
+            }
+        }
+    });
+</script>
+
 <?php if (isset($page_js)): ?>
     <script>
         <?= $page_js ?>
     </script>
 <?php endif; ?>
 
-<!-- Incluir utils.js se existir -->
-<?php if (file_exists(__DIR__ . '/../../../public/js/utils.js')): ?>
-    <script src="/js/utils.js"></script>
-<?php endif; ?>
-
-<!-- Sistema de Notificações (já incluso no header, mas garantindo) -->
-<script>
-    // Funções de compatibilidade para páginas antigas
-    if (typeof showNotification === 'undefined') {
-        window.showNotification = function(message, type = 'info') {
-            if (typeof LayoutEnhancer !== 'undefined') {
-                LayoutEnhancer.showToast(message, type);
-            } else if (typeof Notification !== 'undefined') {
-                Notification.show(message, type);
-            } else {
-                alert(message);
-            }
-        };
-    }
-
-    if (typeof showLoading === 'undefined') {
-        window.showLoading = function(message = 'Processando...') {
-            if (typeof Loading !== 'undefined') {
-                Loading.show(message);
-            }
-        };
-    }
-
-    if (typeof hideLoading === 'undefined') {
-        window.hideLoading = function() {
-            if (typeof Loading !== 'undefined') {
-                Loading.hide();
-            }
-        };
-    }
-</script>
-<script>
-    // Preloader handler
-    (function() {
-        const pageLoader = document.getElementById('pageLoader');
-
-        if (pageLoader) {
-            // Função para esconder o preloader
-            function hidePreloader() {
-                if (pageLoader && !pageLoader.classList.contains('hidden')) {
-                    pageLoader.classList.add('hidden');
-
-                    // Remover completamente após a animação
-                    setTimeout(() => {
-                        if (pageLoader.parentNode) {
-                            pageLoader.style.display = 'none';
-                        }
-                    }, 500);
-                }
-            }
-
-            // Verificar se a página já está carregada
-            if (document.readyState === 'complete') {
-                hidePreloader();
-            } else {
-                // Aguardar o carregamento completo da página
-                window.addEventListener('load', function() {
-                    setTimeout(hidePreloader, 500); // Pequeno delay para melhor UX
-                });
-
-                // Segurança: esconder após 3 segundos mesmo se load não disparar
-                setTimeout(hidePreloader, 3000);
-            }
-
-            // Também esconder em caso de erro
-            window.addEventListener('error', hidePreloader);
-        }
-    })();
-</script>
 </body>
 </html>

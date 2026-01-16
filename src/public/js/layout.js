@@ -14,63 +14,12 @@ class LayoutEnhancer {
     }
 
     initSidebar() {
-        // Auto-hide sidebar on mobile
-        const sidebar = document.querySelector('.sidebar');
-        const mainContent = document.querySelector('.main-content');
-
-        if (sidebar && window.innerWidth < 768) {
-            sidebar.classList.add('d-none');
-
-            // Add toggle button for mobile
-            const toggleBtn = document.createElement('button');
-            toggleBtn.className = 'btn btn-primary btn-sm sidebar-toggle d-md-none';
-            toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
-            toggleBtn.style.position = 'fixed';
-            toggleBtn.style.bottom = '20px';
-            toggleBtn.style.right = '20px';
-            toggleBtn.style.zIndex = '1060';
-            toggleBtn.style.borderRadius = '50%';
-            toggleBtn.style.width = '50px';
-            toggleBtn.style.height = '50px';
-            toggleBtn.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
-
-            toggleBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('d-none');
-                document.body.style.overflow = sidebar.classList.contains('d-none') ? 'auto' : 'hidden';
-            });
-
-            document.body.appendChild(toggleBtn);
-        }
+        // O gerenciamento da sidebar agora é feito principalmente via CSS e HTML no header.php
+        // Removido o auto-hide agressivo que poderia conflitar com o layout desktop
     }
 
     initNavbar() {
-        const navbar = document.querySelector('.navbar');
-        if (!navbar) return;
-
-        // Add shadow on scroll
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                navbar.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
-                navbar.style.backdropFilter = 'blur(10px)';
-                navbar.style.background = 'rgba(102, 126, 234, 0.95)';
-            } else {
-                navbar.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.05)';
-                navbar.style.backdropFilter = 'none';
-                navbar.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-            }
-        });
-
-        // Navbar hover effects
-        const navItems = navbar.querySelectorAll('.nav-link');
-        navItems.forEach(item => {
-            item.addEventListener('mouseenter', () => {
-                item.style.transform = 'translateY(-2px)';
-            });
-
-            item.addEventListener('mouseleave', () => {
-                item.style.transform = 'translateY(0)';
-            });
-        });
+        // A app-header agora é fixa e estilizada via CSS no header.php
     }
 
     initAnimations() {

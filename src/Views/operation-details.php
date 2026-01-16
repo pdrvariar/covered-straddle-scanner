@@ -43,9 +43,9 @@ if (!isset($operation['lfts11_investment']) || $operation['lfts11_investment'] =
 <?php
 include __DIR__ . '/layout/header.php';
 ?>
-<div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
-<div class="py-4">
-            <nav aria-label="breadcrumb">
+    <div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
+    <div class="content-wrapper">
+        <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="/?action=results">Resultados</a></li>
