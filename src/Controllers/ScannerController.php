@@ -66,7 +66,7 @@ class ScannerController {
                 ];
 
                 foreach ($tickers as $ticker) {
-                    $result = $strategyEngine->evaluateStraddles(
+                    $result = $strategyEngine->evaluate(
                         $ticker,
                         $expirationDate,
                         $selicAnnual,

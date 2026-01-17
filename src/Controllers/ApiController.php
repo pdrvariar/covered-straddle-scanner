@@ -43,7 +43,7 @@ class ApiController {
 
             $results = [];
             foreach ($symbolList as $symbol) {
-                $result = $strategyEngine->evaluateStraddles(
+                $result = $strategyEngine->evaluate(
                     trim($symbol),
                     $expiration,
                     $selicAnnual
