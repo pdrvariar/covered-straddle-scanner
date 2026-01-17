@@ -16,23 +16,23 @@ $current_action = $_GET['action'] ?? 'dashboard';
 
 // Set page title if not defined
 if (!isset($page_title)) {
-    $page_title = 'Covered Straddle Scanner';
+    $page_title = 'Options Strategy';
 
     switch ($current_action) {
         case 'dashboard':
-            $page_title = 'Dashboard - Covered Straddle Scanner';
+            $page_title = 'Dashboard - Options Strategy';
             break;
         case 'scan':
-            $page_title = 'Scanner de Opções - Covered Straddle';
+            $page_title = 'Scanner de Opções - Options Strategy';
             break;
         case 'results':
-            $page_title = 'Resultados do Scanner - Covered Straddle';
+            $page_title = 'Resultados do Scanner - Options Strategy';
             break;
         case 'operations':
-            $page_title = 'Operações - Covered Straddle Scanner';
+            $page_title = 'Operações - Options Strategy';
             break;
         case 'details':
-            $page_title = 'Detalhes da Operação - Covered Straddle';
+            $page_title = 'Detalhes da Operação - Options Strategy';
             break;
     }
 }
@@ -45,8 +45,8 @@ if (!isset($page_title)) {
     <title><?= htmlspecialchars($page_title) ?></title>
 
     <!-- Meta Tags -->
-    <meta name="description" content="Scanner avançado para operações de Covered Straddle no mercado brasileiro">
-    <meta name="author" content="Covered Straddle Scanner">
+    <meta name="description" content="Scanner avançado para operações de opções no mercado brasileiro">
+    <meta name="author" content="Options Strategy">
     <meta name="keywords" content="opções, straddle, investimentos, bolsa, b3">
     <meta name="theme-color" content="#1a237e">
 
@@ -54,14 +54,14 @@ if (!isset($page_title)) {
     <meta property="og:type" content="website">
     <meta property="og:url" content="<?= $base_url ?>">
     <meta property="og:title" content="<?= htmlspecialchars($page_title) ?>">
-    <meta property="og:description" content="Scanner avançado para operações de Covered Straddle no mercado brasileiro">
+    <meta property="og:description" content="Scanner avançado para operações de opções no mercado brasileiro">
     <meta property="og:image" content="<?= $base_url ?>/img/og-image.jpg">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="<?= $base_url ?>">
     <meta property="twitter:title" content="<?= htmlspecialchars($page_title) ?>">
-    <meta property="twitter:description" content="Scanner avançado para operações de Covered Straddle no mercado brasileiro">
+    <meta property="twitter:description" content="Scanner avançado para operações de opções no mercado brasileiro">
     <meta property="twitter:image" content="<?= $base_url ?>/img/og-image.jpg">
 
     <!-- Bootstrap 5 -->
@@ -1008,7 +1008,7 @@ if (!isset($page_title)) {
         <div class="spinner-border" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
-        <h5 class="mt-3">Carregando Covered Straddle Scanner</h5>
+        <h5 class="mt-3">Carregando Options Strategy</h5>
         <div class="loading-dots mt-2">
             <div></div>
             <div></div>
@@ -1034,7 +1034,7 @@ if (!isset($page_title)) {
                             <i class="fas fa-chart-network"></i>
                         </div>
                         <div>
-                            <div class="logo-text">Covered Straddle</div>
+                            <div class="logo-text">Options Strategy</div>
                             <div class="logo-tagline">Advanced Options Scanner</div>
                         </div>
                     </a>

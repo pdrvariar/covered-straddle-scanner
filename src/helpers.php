@@ -13,7 +13,7 @@ if (!function_exists('config')) {
         if ($config === null) {
             $config = [
                 'app' => [
-                    'name' => env('APP_NAME', 'Covered Straddle Scanner'),
+                    'name' => env('APP_NAME', 'Options Strategy'),
                     'env' => env('APP_ENV', 'production'),
                     'url' => env('APP_URL', 'http://localhost'),
                     'debug' => env('APP_DEBUG', false)

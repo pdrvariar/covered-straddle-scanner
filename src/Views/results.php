@@ -2,8 +2,16 @@
 $results = $_SESSION['scan_results'] ?? [];
 $params = $_SESSION['scan_params'] ?? [];
 
+// Mapeamento de nomes de estratégia
+$strategyNames = [
+    'covered_straddle' => 'Covered Straddle',
+    'collar' => 'Collar'
+];
+$strategyType = $params['strategy_type'] ?? 'covered_straddle';
+$strategyName = $strategyNames[$strategyType] ?? 'Estratégia Desconhecida';
+
 // Define variáveis para o header
-$page_title = 'Resultados do Scanner - Covered Straddle';
+$page_title = "Resultados do Scanner ({$strategyName}) - Options Strategy";
 
 // Incluir header
 include __DIR__ . '/layout/header.php';
@@ -16,7 +24,7 @@ include __DIR__ . '/layout/header.php';
                 <div>
                     <h1 class="h2 mb-2">
                         <i class="fas fa-chart-line me-2"></i>
-                        Resultados do Scanner
+                        Resultados do Scanner: <?= htmlspecialchars($strategyName) ?>
                     </h1>
                     <p class="mb-0 opacity-75">
                         Análise realizada em <?= date('d/m/Y H:i:s') ?>

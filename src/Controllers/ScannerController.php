@@ -60,7 +60,9 @@ class ScannerController {
                 $filters = [
                     'filter_liquidity' => isset($_POST['filter_liquidity']),
                     'filter_recency' => isset($_POST['filter_recency']),
-                    'min_profit' => (float)($_POST['min_profit'] ?? 0)
+                    'min_profit' => (float)($_POST['min_profit'] ?? 0),
+                    'strategy_type' => $_POST['strategy_type'] ?? 'covered_straddle',
+                    'strike_range' => (float)($_POST['strike_range'] ?? 2.0)
                 ];
 
                 foreach ($tickers as $ticker) {
@@ -93,7 +95,8 @@ class ScannerController {
                 $_SESSION['scan_params'] = [
                     'expiration_date' => $expirationDate,
                     'total_capital' => $totalCapital,
-                    'selic_annual' => $selicAnnual
+                    'selic_annual' => $selicAnnual,
+                    'strategy_type' => $filters['strategy_type'] ?? 'covered_straddle'
                 ];
 
                 // Redirect to avoid form resubmission and allow back button

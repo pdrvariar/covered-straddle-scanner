@@ -15,7 +15,13 @@ class StrategyEngine {
 
     public function evaluateStraddles(string $symbol, string $expirationDate, float $selicAnnual, array $filters = [], bool $includePayoffData = false): ?array {
         try {
-            error_log("=== Iniciando análise para $symbol (venc: $expirationDate) ===");
+            $strategyType = $filters['strategy_type'] ?? 'covered_straddle';
+            error_log("=== Iniciando análise para $symbol (venc: $expirationDate, estratégia: $strategyType) ===");
+
+            if ($strategyType === 'collar') {
+                error_log("⚠️  Estratégia 'Collar' ainda não implementada no motor de análise.");
+                return null;
+            }
 
             // 1. Buscar dados da ação
             $stockData = $this->apiClient->getStockData($symbol);
@@ -49,12 +55,7 @@ class StrategyEngine {
 
             error_log("💰 Preço do LFTS11 (fonte: {$lfts11Data['source']}): R$ " . number_format($lfts11Price, 2));
 
-// Registrar no log se está usando valor padrão
-            if ($lfts11Data['source'] === 'default') {
-                error_log("⚠️  ATENÇÃO: Usando valor padrão para LFTS11. Verifique a conexão com as fontes de dados.");
-            }
-
-            // 3. Buscar opções ATM filtradas
+            // 3. Buscar opções filtradas baseadas no strike range
             $atmOptions = $this->apiClient->getAtmOptions($symbol, $expirationDate, $currentPrice, $filters);
 
             if (empty($atmOptions)) {
@@ -161,7 +162,8 @@ class StrategyEngine {
                     'analysis_date' => $now->format('Y-m-d H:i:s'),
                     'annual_profit_percent' => $metrics['profit_percent'] * (365 / $daysToMaturity),
                     'lfts11_data' => $lfts11Data,
-                    'quantity' => $this->calculator->getQuantity()
+                    'quantity' => $this->calculator->getQuantity(),
+                    'strategy_type' => $strategyType
                 ];
 
                 $straddleData = array_merge($straddleData, $metrics);

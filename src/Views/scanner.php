@@ -1,6 +1,6 @@
 <?php
 // Define variáveis para o header
-$page_title = 'Scanner de Opções - Covered Straddle';
+$page_title = 'Scanner de Opções - Options Strategy';
 
 // Incluir header
 include __DIR__ . '/layout/header.php';
@@ -16,7 +16,7 @@ include __DIR__ . '/layout/header.php';
                         Scanner Rápido
                     </h1>
                     <p class="mb-0 opacity-75">
-                        Configure os parâmetros para localizar as melhores oportunidades de Covered Straddle
+                        Configure os parâmetros para localizar as melhores oportunidades de opções
                     </p>
                 </div>
             </div>
@@ -131,6 +131,54 @@ include __DIR__ . '/layout/header.php';
 
                 <!-- Right Column - Advanced Settings -->
                 <div class="col-lg-4">
+                    <!-- Strategy Selection -->
+                    <div class="card scanner-card border-0 shadow-lg mb-4">
+                        <div class="card-header bg-transparent border-0 pb-0">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="card-icon-wrapper bg-primary">
+                                    <i class="fas fa-chess"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h5 class="card-title mb-1">Estratégia</h5>
+                                    <p class="text-muted small mb-0">Selecione o tipo de operação</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body pt-0">
+                            <div class="mb-3">
+                                <label for="strategy_type" class="form-label fw-semibold">
+                                    <i class="fas fa-layer-group me-2"></i>
+                                    Tipo de Estratégia
+                                </label>
+                                <select class="form-select form-select-lg" id="strategy_type" name="strategy_type">
+                                    <option value="covered_straddle" selected>Covered Straddle</option>
+                                    <option value="collar">Collar</option>
+                                </select>
+                            </div>
+                            <div class="mb-0">
+                                <label for="strike_range" class="form-label fw-semibold">
+                                    <i class="fas fa-arrows-alt-h me-2"></i>
+                                    Strike (% do Ativo)
+                                </label>
+                                <div class="input-group">
+                                    <input type="number"
+                                           class="form-control form-control-lg"
+                                           id="strike_range"
+                                           name="strike_range"
+                                           value="2"
+                                           min="0"
+                                           max="100"
+                                           step="0.01"
+                                           required>
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text mt-2">
+                                    <small>Variação máxima do strike em relação ao preço da ação (Ex: 2% busca strikes entre -2% e +2%)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Expiration Settings -->
                     <div class="card scanner-card border-0 shadow-lg h-100">
                         <div class="card-header bg-transparent border-0 pb-0">

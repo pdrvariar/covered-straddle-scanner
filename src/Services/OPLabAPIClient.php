@@ -106,7 +106,10 @@ class OPLabAPIClient {
                 return [];
             }
 
-            $strikeLimit = $currentPrice * 0.02; // ±10% para ATM
+            // Define o limite de strike (percentual dinâmico ou default 2%)
+            $strikeRangePercent = (float)($filters['strike_range'] ?? 2.0);
+            $strikeLimit = $currentPrice * ($strikeRangePercent / 100.0); 
+            
             $maxAgeMs = 300000; // 5 minutos
             $nowMs = time() * 1000;
 

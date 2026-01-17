@@ -13,6 +13,14 @@ $operation['current_price'] = $operation['current_price'] ?? 0;
 $operation['max_profit'] = $operation['max_profit'] ?? 0;
 $operation['profit_percent'] = $operation['profit_percent'] ?? 0;
 $operation['quantity'] = $operation['quantity'] ?? 1000;
+$operation['strategy_type'] = $operation['strategy_type'] ?? 'covered_straddle';
+
+// Mapeamento de nomes de estratégia
+$strategyNames = [
+    'covered_straddle' => 'Covered Straddle',
+    'collar' => 'Collar'
+];
+$strategyName = $strategyNames[$operation['strategy_type']] ?? 'Estratégia Desconhecida';
 
 // Calcular valores adicionais
 $totalPremiums = ($operation['call_premium'] + $operation['put_premium']) * $operation['quantity'];
@@ -41,6 +49,9 @@ if (!isset($operation['lfts11_investment']) || $operation['lfts11_investment'] =
 ?>
 
 <?php
+// Set page title
+$page_title = "Detalhes da Operação ({$strategyName}) - Options Strategy";
+
 include __DIR__ . '/layout/header.php';
 ?>
     <div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1050; pointer-events: none;"></div>
@@ -49,13 +60,13 @@ include __DIR__ . '/layout/header.php';
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="/?action=results">Resultados</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Detalhes</li>
+                    <li class="breadcrumb-item active" aria-current="page">Detalhes (<?= htmlspecialchars($strategyName) ?>)</li>
                 </ol>
             </nav>
 
             <div class="page-header-gradient d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h2 mb-1">Detalhes da Operação</h1>
+                    <h1 class="h2 mb-1">Detalhes da Operação: <?= htmlspecialchars($strategyName) ?></h1>
                     <h3 class="text-white-50 h4 mb-2"><?= htmlspecialchars($operation['symbol'] ?? 'Desconhecido') ?></h3>
                     <p class="mb-0 opacity-75">
                         <i class="fas fa-calendar me-1"></i>
@@ -80,7 +91,7 @@ include __DIR__ . '/layout/header.php';
                         <div class="card-header bg-primary text-white detail-card-header">
                             <h5 class="card-title mb-0">
                                 <i class="fas fa-chart-pie me-2"></i>
-                                Resumo da Operação de Straddle Coberto
+                                Resumo da Operação: <?= htmlspecialchars($strategyName) ?>
                             </h5>
                         </div>
                         <div class="card-body">
