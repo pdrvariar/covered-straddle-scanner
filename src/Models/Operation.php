@@ -129,21 +129,21 @@ class Operation
         }
     }
 
-    // Método estático para salvar operação
+    // Método estático para salvar operação - CORRIGIDO
     public static function save($data)
     {
         try {
             $db = self::getConnection();
 
             $sql = "INSERT INTO operations (
-                user_id, symbol, current_price, strike_price, call_symbol, call_premium,
+                user_id, symbol, current_price, strike_price, call_strike, put_strike, call_symbol, call_premium,
                 put_symbol, put_premium, expiration_date, days_to_maturity,
                 initial_investment, max_profit, max_loss, profit_percent,
                 monthly_profit_percent, selic_annual, status, strategy_type,
                 risk_level, notes, quantity, lfts11_price, lfts11_quantity,
                 lfts11_investment, lfts11_return
             ) VALUES (
-                :user_id, :symbol, :current_price, :strike_price, :call_symbol, :call_premium,
+                :user_id, :symbol, :current_price, :strike_price, :call_strike, :put_strike, :call_symbol, :call_premium,
                 :put_symbol, :put_premium, :expiration_date, :days_to_maturity,
                 :initial_investment, :max_profit, :max_loss, :profit_percent,
                 :monthly_profit_percent, :selic_annual, :status, :strategy_type,
@@ -153,11 +153,22 @@ class Operation
 
             $stmt = $db->prepare($sql);
 
+            // Determinar se é Collar ou Covered Straddle
+            $strategyType = $data['strategy_type'] ?? 'covered_straddle';
+            $isCollar = $strategyType === 'collar';
+
+            // Definir os strikes baseado na estratégia
+            $strikePrice = $data['strike_price'] ?? 0;
+            $callStrike = $data['call_strike'] ?? ($isCollar ? ($data['call_strike'] ?? $strikePrice) : $strikePrice);
+            $putStrike = $data['put_strike'] ?? ($isCollar ? ($data['put_strike'] ?? $strikePrice) : $strikePrice);
+
             $params = [
                 ':user_id' => $data['user_id'] ?? ($_SESSION['user_id'] ?? null),
                 ':symbol' => $data['symbol'] ?? null,
                 ':current_price' => $data['current_price'] ?? null,
-                ':strike_price' => $data['strike_price'] ?? null,
+                ':strike_price' => $strikePrice,
+                ':call_strike' => $callStrike,
+                ':put_strike' => $putStrike,
                 ':call_symbol' => $data['call_symbol'] ?? null,
                 ':call_premium' => $data['call_premium'] ?? null,
                 ':put_symbol' => $data['put_symbol'] ?? null,
@@ -171,21 +182,29 @@ class Operation
                 ':monthly_profit_percent' => $data['monthly_profit_percent'] ?? null,
                 ':selic_annual' => $data['selic_annual'] ?? null,
                 ':status' => $data['status'] ?? 'active',
-                ':strategy_type' => $data['strategy_type'] ?? 'covered_straddle',
+                ':strategy_type' => $strategyType,
                 ':risk_level' => $data['risk_level'] ?? 'medium',
                 ':notes' => $data['notes'] ?? null,
-                ':quantity' => $data['quantity'] ?? 1000,
+                ':quantity' => $data['quantity'] ?? ($isCollar ? 100 : 1000),
                 ':lfts11_price' => $data['lfts11_price'] ?? ($data['lfts11_data']['price'] ?? null),
                 ':lfts11_quantity' => $data['lfts11_quantity'] ?? ($data['lfts11_data']['quantity'] ?? null),
                 ':lfts11_investment' => $data['lfts11_investment'] ?? null,
                 ':lfts11_return' => $data['lfts11_return'] ?? null
             ];
 
+            // Log dos parâmetros para debug (remover em produção)
+            error_log("Salvando operação com parâmetros: " . json_encode(array_keys($params)));
+
             if ($stmt->execute($params)) {
-                return $db->lastInsertId();
+                $operationId = $db->lastInsertId();
+                error_log("Operação salva com sucesso. ID: " . $operationId);
+                return $operationId;
+            } else {
+                $errorInfo = $stmt->errorInfo();
+                error_log("Erro ao executar query: " . json_encode($errorInfo));
+                throw new Exception('Erro ao salvar operação: ' . ($errorInfo[2] ?? 'Desconhecido'));
             }
 
-            throw new Exception('Erro ao salvar operação');
         } catch (Exception $e) {
             error_log("Error saving operation: " . $e->getMessage());
             throw $e;

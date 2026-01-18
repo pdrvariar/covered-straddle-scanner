@@ -10,9 +10,10 @@ class StrategyEngine {
 
     public function __construct(OPLabAPIClient $apiClient) {
         $this->apiClient = $apiClient;
-        
-        // Registrar estratégias disponíveis
+
+        // Registrar ambas as estratégias disponíveis
         $this->registerStrategy(new CoveredStraddleStrategy($apiClient));
+        $this->registerStrategy(new CollarStrategy($apiClient));
     }
 
     public function registerStrategy(IOptionStrategy $strategy) {
@@ -21,7 +22,7 @@ class StrategyEngine {
 
     public function evaluate(string $symbol, string $expirationDate, float $selicAnnual, array $filters = [], bool $includePayoffData = false): ?array {
         $strategyType = $filters['strategy_type'] ?? 'covered_straddle';
-        
+
         if (!isset($this->strategies[$strategyType])) {
             error_log("⚠️ Estratégia '$strategyType' não encontrada ou não implementada.");
             return null;

@@ -85,9 +85,10 @@ class ScannerController {
 
                 // Ordenar do MAIOR para o MENOR MSO (Margem de Segurança da Operação)
                 usort($results, function($a, $b) {
-                    $msoA = $a['mso'] ?? 0;
-                    $msoB = $b['mso'] ?? 0;
-                    return $msoB <=> $msoA;
+                    // Usar a menor rentabilidade entre os cenários de alta e queda
+                    $rentA = min($a['profit_if_rise_percent'] ?? 0, $a['profit_if_fall_percent'] ?? 0);
+                    $rentB = min($b['profit_if_rise_percent'] ?? 0, $b['profit_if_fall_percent'] ?? 0);
+                    return $rentB <=> $rentA;
                 });
 
                 // Store in session for later use
@@ -155,9 +156,9 @@ class ScannerController {
     public function save() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Obtém os dados do POST
-            $jsonData = $_POST['operation'] ?? '';
-            
-            error_log("Tentativa de salvar operação via AJAX. Dados recebidos: " . (empty($jsonData) ? 'vazio' : 'contém dados'));
+            $jsonData = $_POST['operation'] ?? file_get_contents('php://input');
+
+            error_log("Tentativa de salvar operação via AJAX. Dados recebidos: " . substr($jsonData, 0, 500));
 
             if (!empty($jsonData)) {
                 // Decodifica o JSON
@@ -167,20 +168,37 @@ class ScannerController {
                     try {
                         // Log para depuração
                         error_log("Salvando operação para o símbolo: " . ($operationData['symbol'] ?? 'N/A'));
-                        
+                        error_log("Tipo de estratégia: " . ($operationData['strategy_type'] ?? 'covered_straddle'));
+
+                        // Garantir que os campos necessários existam
+                        if (!isset($operationData['strike_price']) && isset($operationData['call_strike'])) {
+                            $operationData['strike_price'] = $operationData['call_strike'];
+                        }
+
+                        if (!isset($operationData['call_strike']) && isset($operationData['strike_price'])) {
+                            $operationData['call_strike'] = $operationData['strike_price'];
+                        }
+
+                        if (!isset($operationData['put_strike']) && isset($operationData['strike_price'])) {
+                            $operationData['put_strike'] = $operationData['strike_price'];
+                        }
+
                         // Usa o método estático do modelo Operation
                         $operationId = Operation::save($operationData);
 
                         if ($operationId) {
                             error_log("Operação salva com sucesso! ID: " . $operationId);
-                            
-                            // Usar notificação flash
-                            \add_flash_notification('Operação salva com sucesso! ID: ' . $operationId, 'success');
 
                             // Retornar JSON para AJAX
                             if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
                                 strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                                \json_response(['id' => $operationId], true, 'Operação salva com sucesso!');
+                                header('Content-Type: application/json');
+                                echo json_encode([
+                                    'success' => true,
+                                    'id' => $operationId,
+                                    'message' => 'Operação salva com sucesso!'
+                                ]);
+                                exit;
                             } else {
                                 // Redirecionamento normal
                                 header('Location: /?action=details&id=' . $operationId);
@@ -195,7 +213,12 @@ class ScannerController {
 
                         if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
                             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                            \json_response([], false, $errorMsg);
+                            header('Content-Type: application/json');
+                            echo json_encode([
+                                'success' => false,
+                                'error' => $errorMsg
+                            ]);
+                            exit;
                         } else {
                             \add_flash_notification($errorMsg, 'error');
                             header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '/?action=scan'));
@@ -207,7 +230,12 @@ class ScannerController {
                     error_log($errorMsg);
                     if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
                         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                        \json_response([], false, $errorMsg);
+                        header('Content-Type: application/json');
+                        echo json_encode([
+                            'success' => false,
+                            'error' => $errorMsg
+                        ]);
+                        exit;
                     }
                 }
             } else {
@@ -215,7 +243,12 @@ class ScannerController {
                 error_log($errorMsg);
                 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
                     strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                    \json_response([], false, $errorMsg);
+                    header('Content-Type: application/json');
+                    echo json_encode([
+                        'success' => false,
+                        'error' => $errorMsg
+                    ]);
+                    exit;
                 }
             }
         }
