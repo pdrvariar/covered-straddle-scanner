@@ -30,11 +30,14 @@ include __DIR__ . '/layout/header.php';
                         Análise realizada em <?= date('d/m/Y H:i:s') ?>
                     </p>
                 </div>
-                <div class="text-end">
-                        <span class="badge bg-white text-primary fs-6">
-                            <i class="fas fa-sort-amount-down me-1"></i>
-                            Ordenado por Margem de Segurança (MSO)
-                        </span>
+                <div class="text-end d-flex align-items-center gap-3">
+                    <span class="badge bg-white text-primary fs-6">
+                        <i class="fas fa-sort-amount-down me-1"></i>
+                        Ordenado por Margem de Segurança (MSO)
+                    </span>
+                    <a href="/?action=scan" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Voltar
+                    </a>
                 </div>
             </div>
         </div>

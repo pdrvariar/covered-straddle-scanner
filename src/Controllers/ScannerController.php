@@ -20,6 +20,10 @@ class ScannerController {
         // Display scanning interface
         $defaultTickers = "BBAS3,PETR4,BBSE3,VALE3,ITSA4,CMIG4,TAEE11,CXSE3,ISAE4,WEGE3,CSMG3,EGIE3,ITUB4,GOAU4,BBDC3,KLBN11,AURE3,CMIN3,RANI3,LEVE3,SAPR11,B3SA3,ABEV3,KEPL3,BMGB4,JHSF3,AGRO3,ABCB4,CSAN3,BRAP4,CPFE3,PRIO3,PSSA3,FIQE3";
 
+        // Recuperar parâmetros da sessão se existirem
+        $params = $_SESSION['scan_params'] ?? [];
+        $filters = $_SESSION['scan_filters'] ?? [];
+
         include __DIR__ . '/../Views/scanner.php';
     }
 
@@ -94,11 +98,14 @@ class ScannerController {
                 // Store in session for later use
                 $_SESSION['scan_results'] = $results;
                 $_SESSION['scan_params'] = [
+                    'tickers' => $tickersInput,
                     'expiration_date' => $expirationDate,
                     'total_capital' => $totalCapital,
                     'selic_annual' => $selicAnnual,
-                    'strategy_type' => $filters['strategy_type'] ?? 'covered_straddle'
+                    'strategy_type' => $filters['strategy_type'] ?? 'covered_straddle',
+                    'strike_range' => $filters['strike_range'] ?? 2.0
                 ];
+                $_SESSION['scan_filters'] = $filters;
 
                 // Redirect to avoid form resubmission and allow back button
                 header('Location: /?action=results');

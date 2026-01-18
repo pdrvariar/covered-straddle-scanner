@@ -80,7 +80,7 @@ include __DIR__ . '/layout/header.php';
                                           name="tickers"
                                           rows="4"
                                           required
-                                          placeholder="Insira os tickers separados por vírgula"><?= htmlspecialchars($defaultTickers ?? 'PETR4,VALE3,ITUB4,BBAS3,BBDC4') ?></textarea>
+                                          placeholder="Insira os tickers separados por vírgula"><?= htmlspecialchars($params['tickers'] ?? $defaultTickers ?? 'PETR4,VALE3,ITUB4,BBAS3,BBDC4') ?></textarea>
                                 <div class="form-text mt-2">
                                     <small class="d-flex align-items-center">
                                         <i class="fas fa-lightbulb me-2 text-warning"></i>
@@ -151,8 +151,8 @@ include __DIR__ . '/layout/header.php';
                                     Tipo de Estratégia
                                 </label>
                                 <select class="form-select form-select-lg" id="strategy_type" name="strategy_type" onchange="applyStrategyDefaults(this.value)">
-                                    <option value="covered_straddle" selected>Covered Straddle</option>
-                                    <option value="collar">Collar</option>
+                                    <option value="covered_straddle" <?= ($params['strategy_type'] ?? '') === 'covered_straddle' ? 'selected' : '' ?>>Covered Straddle</option>
+                                    <option value="collar" <?= ($params['strategy_type'] ?? '') === 'collar' ? 'selected' : '' ?>>Collar</option>
                                 </select>
                             </div>
                             <div class="mb-0">
@@ -165,7 +165,7 @@ include __DIR__ . '/layout/header.php';
                                            class="form-control form-control-lg"
                                            id="strike_range"
                                            name="strike_range"
-                                           value="2"
+                                           value="<?= htmlspecialchars($params['strike_range'] ?? '2') ?>"
                                            min="0"
                                            max="100"
                                            step="0.01"
@@ -205,7 +205,7 @@ include __DIR__ . '/layout/header.php';
                                        class="form-control form-control-lg"
                                        id="expiration_date"
                                        name="expiration_date"
-                                       value="<?= $defaultDate ?>"
+                                       value="<?= htmlspecialchars($params['expiration_date'] ?? $defaultDate) ?>"
                                        required>
                                 <div class="form-text mt-2">
                                     <small>Data de vencimento das opções</small>
@@ -267,7 +267,7 @@ include __DIR__ . '/layout/header.php';
                                                        min="0"
                                                        max="50"
                                                        step="0.1"
-                                                       value="0"
+                                                       value="<?= htmlspecialchars($filters['min_profit'] ?? '0') ?>"
                                                        oninput="updateProfitDisplay(this.value)">
                                                 <button type="button" class="btn btn-outline-secondary" onclick="decreaseProfit()">
                                                     <i class="fas fa-minus"></i>
@@ -316,7 +316,7 @@ include __DIR__ . '/layout/header.php';
                                                    type="checkbox"
                                                    id="filter_liquidity"
                                                    name="filter_liquidity"
-                                                   checked>
+                                                   <?= (!isset($filters['filter_liquidity']) || $filters['filter_liquidity']) ? 'checked' : '' ?>>
                                             <label class="form-check-label" for="filter_liquidity">
                                                 <i class="fas fa-exchange-alt me-2 text-success"></i>
                                                 Filtro de Liquidez
@@ -329,7 +329,7 @@ include __DIR__ . '/layout/header.php';
                                                    type="checkbox"
                                                    id="filter_recency"
                                                    name="filter_recency"
-                                                   checked>
+                                                   <?= (!isset($filters['filter_recency']) || $filters['filter_recency']) ? 'checked' : '' ?>>
                                             <label class="form-check-label" for="filter_recency">
                                                 <i class="fas fa-clock me-2 text-info"></i>
                                                 Filtro de Recência
@@ -580,13 +580,17 @@ ob_start();
         // Reset form
         function resetForm() {
             if (confirm('Tem certeza que deseja limpar todos os campos?')) {
+                // Limpar dados da sessão via AJAX ou redirecionamento se necessário, 
+                // mas para este formulário, apenas resetar os campos e padrões basta.
+                
                 document.getElementById('scannerForm').reset();
                 updateProfitDisplay(0);
 
-                // Reset to default strategy values
+                // Forçar aplicação dos padrões da estratégia inicial
                 const strategyType = document.getElementById('strategy_type');
                 if (strategyType) {
-                    applyStrategyDefaults(strategyType.value);
+                    strategyType.value = 'covered_straddle';
+                    applyStrategyDefaults('covered_straddle', true);
                 }
 
                 // Reset expiration date
@@ -651,9 +655,10 @@ ob_start();
             const expirationInput = document.getElementById('expiration_date');
             if (expirationInput) expirationInput.min = today;
 
-            // Aplicar padrões iniciais para a estratégia selecionada
+            // Aplicar padrões iniciais APENAS se não houver parâmetros da sessão
+            const hasSessionParams = <?= !empty($params) ? 'true' : 'false' ?>;
             const strategyType = document.getElementById('strategy_type');
-            if (strategyType) {
+            if (strategyType && !hasSessionParams) {
                 applyStrategyDefaults(strategyType.value, true);
             }
 
