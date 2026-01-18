@@ -54,10 +54,10 @@ include __DIR__ . '/layout/header.php';
         <!-- Scanner Form -->
         <form id="scannerForm" method="POST" action="/?action=results">
             <div class="row g-4">
-                <!-- Left Column - Parameters -->
+                <!-- Left Column - Tickers and Main Parameters -->
                 <div class="col-lg-8">
                     <!-- Asset Selection -->
-                    <div class="card scanner-card border-0 shadow-lg mt-4">
+                    <div class="card scanner-card border-0 shadow-lg h-100">
                         <div class="card-header bg-transparent border-0 pb-0">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="card-icon-wrapper bg-success">
@@ -78,7 +78,7 @@ include __DIR__ . '/layout/header.php';
                                 <textarea class="form-control form-control-lg"
                                           id="tickers"
                                           name="tickers"
-                                          rows="4"
+                                          rows="5"
                                           required
                                           placeholder="Insira os tickers separados por vírgula"><?= htmlspecialchars($params['tickers'] ?? $defaultTickers ?? 'PETR4,VALE3,ITUB4,BBAS3,BBDC4') ?></textarea>
                                 <div class="form-text mt-2">
@@ -90,7 +90,7 @@ include __DIR__ . '/layout/header.php';
                             </div>
 
                             <!-- Quick Tickers -->
-                            <div class="mb-4">
+                            <div class="mb-0">
                                 <label class="form-label fw-semibold mb-3">Tickers Recomendados</label>
                                 <div class="d-flex flex-wrap gap-2 mb-3">
                                     <?php
@@ -129,102 +129,82 @@ include __DIR__ . '/layout/header.php';
                     </div>
                 </div>
 
-                <!-- Right Column - Advanced Settings -->
+                <!-- Right Column - Strategy and Expiration -->
                 <div class="col-lg-4">
-                    <!-- Strategy Selection -->
-                    <div class="card scanner-card border-0 shadow-lg mb-4">
-                        <div class="card-header bg-transparent border-0 pb-0">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="card-icon-wrapper bg-primary">
-                                    <i class="fas fa-chess"></i>
+                    <div class="d-flex flex-column h-100 gap-4">
+                        <!-- Strategy Selection -->
+                        <div class="card scanner-card border-0 shadow-lg flex-fill">
+                            <div class="card-header bg-transparent border-0 pb-0">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="card-icon-wrapper bg-primary">
+                                        <i class="fas fa-chess"></i>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h5 class="card-title mb-1">Estratégia</h5>
+                                        <p class="text-muted small mb-0">Parâmetros da operação</p>
+                                    </div>
                                 </div>
-                                <div class="ms-3">
-                                    <h5 class="card-title mb-1">Estratégia</h5>
-                                    <p class="text-muted small mb-0">Selecione o tipo de operação</p>
+                            </div>
+                            <div class="card-body pt-0">
+                                <div class="mb-3">
+                                    <label for="strategy_type" class="form-label fw-semibold">
+                                        <i class="fas fa-layer-group me-2"></i>
+                                        Tipo
+                                    </label>
+                                    <select class="form-select" id="strategy_type" name="strategy_type" onchange="applyStrategyDefaults(this.value)">
+                                        <option value="covered_straddle" <?= ($params['strategy_type'] ?? '') === 'covered_straddle' ? 'selected' : '' ?>>Covered Straddle</option>
+                                        <option value="collar" <?= ($params['strategy_type'] ?? '') === 'collar' ? 'selected' : '' ?>>Collar</option>
+                                    </select>
+                                </div>
+                                <div class="mb-0">
+                                    <label for="strike_range" class="form-label fw-semibold">
+                                        <i class="fas fa-arrows-alt-h me-2"></i>
+                                        Strike (% do Ativo)
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="number"
+                                               class="form-control"
+                                               id="strike_range"
+                                               name="strike_range"
+                                               value="<?= htmlspecialchars($params['strike_range'] ?? '2') ?>"
+                                               min="0"
+                                               max="100"
+                                               step="0.01"
+                                               required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body pt-0">
-                            <div class="mb-3">
-                                <label for="strategy_type" class="form-label fw-semibold">
-                                    <i class="fas fa-layer-group me-2"></i>
-                                    Tipo de Estratégia
-                                </label>
-                                <select class="form-select form-select-lg" id="strategy_type" name="strategy_type" onchange="applyStrategyDefaults(this.value)">
-                                    <option value="covered_straddle" <?= ($params['strategy_type'] ?? '') === 'covered_straddle' ? 'selected' : '' ?>>Covered Straddle</option>
-                                    <option value="collar" <?= ($params['strategy_type'] ?? '') === 'collar' ? 'selected' : '' ?>>Collar</option>
-                                </select>
+
+                        <!-- Expiration Settings -->
+                        <div class="card scanner-card border-0 shadow-lg flex-fill">
+                            <div class="card-header bg-transparent border-0 pb-0">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="card-icon-wrapper bg-warning">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h5 class="card-title mb-1">Vencimento</h5>
+                                        <p class="text-muted small mb-0">Selecione a data</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mb-0">
-                                <label for="strike_range" class="form-label fw-semibold">
-                                    <i class="fas fa-arrows-alt-h me-2"></i>
-                                    Strike (% do Ativo)
-                                </label>
-                                <div class="input-group">
-                                    <input type="number"
-                                           class="form-control form-control-lg"
-                                           id="strike_range"
-                                           name="strike_range"
-                                           value="<?= htmlspecialchars($params['strike_range'] ?? '2') ?>"
-                                           min="0"
-                                           max="100"
-                                           step="0.01"
+                            <div class="card-body pt-0">
+                                <div class="mb-3">
+                                    <input type="date"
+                                           class="form-control"
+                                           id="expiration_date"
+                                           name="expiration_date"
+                                           value="<?= htmlspecialchars($params['expiration_date'] ?? date('Y-m-d', strtotime('+30 days'))) ?>"
                                            required>
-                                    <span class="input-group-text">%</span>
                                 </div>
-                                <div class="form-text mt-2">
-                                    <small>Variação máxima do strike em relação ao preço da ação (Ex: 2% busca strikes entre -2% e +2%)</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Expiration Settings -->
-                    <div class="card scanner-card border-0 shadow-lg h-100">
-                        <div class="card-header bg-transparent border-0 pb-0">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="card-icon-wrapper bg-warning">
-                                    <i class="fas fa-calendar-alt"></i>
-                                </div>
-                                <div class="ms-3">
-                                    <h5 class="card-title mb-1">Vencimento</h5>
-                                    <p class="text-muted small mb-0">Selecione a data de vencimento</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="mb-4">
-                                <label for="expiration_date" class="form-label fw-semibold">
-                                    <i class="fas fa-calendar-alt me-2"></i>
-                                    Data de Vencimento
-                                </label>
-                                <?php
-                                $defaultDate = date('Y-m-d', strtotime('+30 days'));
-                                ?>
-                                <input type="date"
-                                       class="form-control form-control-lg"
-                                       id="expiration_date"
-                                       name="expiration_date"
-                                       value="<?= htmlspecialchars($params['expiration_date'] ?? $defaultDate) ?>"
-                                       required>
-                                <div class="form-text mt-2">
-                                    <small>Data de vencimento das opções</small>
-                                </div>
-                            </div>
-
-                            <!-- Quick Expiration Buttons -->
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold mb-3">Vencimentos Sugeridos:</label>
+                                <!-- Quick Expiration Buttons -->
                                 <div class="btn-group w-100" role="group">
-                                    <button type="button" class="btn btn-outline-primary" onclick="setExpiration(7)">
-                                        7 dias
-                                    </button>
-                                    <button type="button" class="btn btn-outline-primary" onclick="setExpiration(30)">
-                                        30 dias
-                                    </button>
-                                    <button type="button" class="btn btn-outline-primary" onclick="setExpiration(60)">
-                                        60 dias
-                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="setExpiration(7)">7d</button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="setExpiration(30)">30d</button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="setExpiration(60)">60d</button>
                                 </div>
                             </div>
                         </div>
@@ -247,103 +227,77 @@ include __DIR__ . '/layout/header.php';
                         </div>
                         <div class="card-body pt-0">
                             <div class="row g-4">
-                                <!-- Filtro de Lucro Mínimo - MODIFICADO -->
-                                <div class="col-md-6">
-                                    <div class="filter-section">
+                                <!-- Filtro de Lucro Mínimo -->
+                                <div class="col-md-7">
+                                    <div class="filter-section h-100">
                                         <label class="form-label fw-semibold mb-3">
                                             <i class="fas fa-chart-line me-2"></i>
                                             Lucro Mínimo (%)
                                         </label>
 
-                                        <div class="profit-input-container mb-4">
-                                            <div class="input-group input-group-lg">
-                                            <span class="input-group-text bg-light">
-                                                <i class="fas fa-percentage"></i>
-                                            </span>
-                                                <input type="number"
-                                                       class="form-control profit-input"
-                                                       id="min_profit"
-                                                       name="min_profit"
-                                                       min="0"
-                                                       max="50"
-                                                       step="0.1"
-                                                       value="<?= htmlspecialchars($filters['min_profit'] ?? '0') ?>"
-                                                       oninput="updateProfitDisplay(this.value)">
-                                                <button type="button" class="btn btn-outline-secondary" onclick="decreaseProfit()">
-                                                    <i class="fas fa-minus"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary" onclick="increaseProfit()">
-                                                    <i class="fas fa-plus"></i>
-                                                </button>
+                                        <div class="row align-items-center g-3">
+                                            <div class="col-md-6">
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="fas fa-percentage text-muted"></i>
+                                                    </span>
+                                                    <input type="number"
+                                                           class="form-control profit-input border-start-0"
+                                                           id="min_profit"
+                                                           name="min_profit"
+                                                           min="0"
+                                                           max="50"
+                                                           step="0.01"
+                                                           value="<?= htmlspecialchars($filters['min_profit'] ?? '0') ?>"
+                                                           oninput="updateProfitDisplay(this.value)">
+                                                    <button type="button" class="btn btn-outline-secondary border-start-0" onclick="decreaseProfit()">
+                                                        <i class="fas fa-minus"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary" onclick="increaseProfit()">
+                                                        <i class="fas fa-plus"></i>
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div class="profit-value-display text-center mt-2">
-                                                <span class="profit-value-badge" id="profitValueDisplay">0%</span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Quick Value Buttons -->
-                                        <div class="mb-4">
-                                            <label class="form-label mb-2 text-muted">Valores Rápidos:</label>
-                                            <div class="d-flex flex-wrap gap-2">
-                                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="setProfitValue(2)">2%</button>
-                                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="setProfitValue(5)">5%</button>
-                                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="setProfitValue(7.5)">7.5%</button>
-                                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="setProfitValue(10)">10%</button>
-                                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="setProfitValue(15)">15%</button>
-                                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="setProfitValue(20)">20%</button>
+                                            <div class="col-md-6">
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    <button type="button" class="btn btn-xs btn-outline-primary" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;" onclick="setProfitValue(2)">2%</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-primary" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;" onclick="setProfitValue(5)">5%</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-primary" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;" onclick="setProfitValue(7.5)">7.5%</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-primary" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;" onclick="setProfitValue(10)">10%</button>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div class="form-text">
-                                            <small class="d-flex align-items-center">
-                                                <i class="fas fa-info-circle me-2 text-info"></i>
-                                                Filtrar apenas operações com lucro acima deste valor
-                                            </small>
+                                        <div class="mt-3 d-flex align-items-center justify-content-between">
+                                            <div class="form-text mb-0">
+                                                <small><i class="fas fa-info-circle me-1"></i> Apenas lucros acima deste valor</small>
+                                            </div>
+                                            <span class="profit-value-badge" id="profitValueDisplay">0%</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Filtros de Qualidade -->
-                                <div class="col-md-6">
-                                    <div class="filter-section">
+                                <div class="col-md-5">
+                                    <div class="filter-section h-100 border-start ps-md-4">
                                         <label class="form-label fw-semibold mb-3">
                                             <i class="fas fa-sliders-h me-2"></i>
-                                            Filtros de Qualidade
+                                            Qualidade
                                         </label>
 
-                                        <div class="form-check form-switch form-switch-lg mb-3">
-                                            <input class="form-check-input"
-                                                   type="checkbox"
-                                                   id="filter_liquidity"
-                                                   name="filter_liquidity"
-                                                   <?= (!isset($filters['filter_liquidity']) || $filters['filter_liquidity']) ? 'checked' : '' ?>>
-                                            <label class="form-check-label" for="filter_liquidity">
-                                                <i class="fas fa-exchange-alt me-2 text-success"></i>
-                                                Filtro de Liquidez
-                                                <small class="d-block text-muted">Spread máximo: R$ 0,05</small>
-                                            </label>
-                                        </div>
+                                        <div class="d-flex flex-column gap-2">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="filter_liquidity" name="filter_liquidity" <?= (!isset($filters['filter_liquidity']) || $filters['filter_liquidity']) ? 'checked' : '' ?>>
+                                                <label class="form-check-label small" for="filter_liquidity">
+                                                    Liquidez <span class="text-muted">(Spread ≤ 0,05)</span>
+                                                </label>
+                                            </div>
 
-                                        <div class="form-check form-switch form-switch-lg mb-3">
-                                            <input class="form-check-input"
-                                                   type="checkbox"
-                                                   id="filter_recency"
-                                                   name="filter_recency"
-                                                   <?= (!isset($filters['filter_recency']) || $filters['filter_recency']) ? 'checked' : '' ?>>
-                                            <label class="form-check-label" for="filter_recency">
-                                                <i class="fas fa-clock me-2 text-info"></i>
-                                                Filtro de Recência
-                                                <small class="d-block text-muted">Último negócio: 5 minutos</small>
-                                            </label>
-                                        </div>
-
-                                        <div class="alert alert-light border mt-3">
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-sort-amount-down fa-xl me-3 text-primary"></i>
-                                                <div>
-                                                    <h6 class="alert-heading mb-1">Ordenação Automática</h6>
-                                                    <p class="mb-0 small">Os resultados serão automaticamente ordenados do maior para o menor lucro percentual.</p>
-                                                </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="filter_recency" name="filter_recency" <?= (!isset($filters['filter_recency']) || $filters['filter_recency']) ? 'checked' : '' ?>>
+                                                <label class="form-check-label small" for="filter_recency">
+                                                    Recência <span class="text-muted">(≤ 5 min)</span>
+                                                </label>
                                             </div>
                                         </div>
                                     </div>
@@ -381,15 +335,15 @@ include __DIR__ . '/layout/header.php';
                                         </p>
                                     </div>
                                 </div>
-                                <div class="col-md-4 text-md-end">
-                                    <div class="d-grid gap-2">
-                                        <button type="submit" class="btn btn-primary btn-lg btn-scanner" id="scanButton">
+                <div class="col-md-4 text-md-end">
+                                    <div class="d-flex flex-column flex-md-row gap-2 justify-content-end">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                            <i class="fas fa-redo me-2"></i>
+                                            Limpar
+                                        </button>
+                                        <button type="submit" class="btn btn-primary btn-lg px-5" id="scanButton">
                                             <i class="fas fa-play me-2"></i>
                                             Executar Scanner
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-lg" onclick="resetForm()">
-                                            <i class="fas fa-redo me-2"></i>
-                                            Limpar Formulário
                                         </button>
                                     </div>
                                 </div>
@@ -557,7 +511,7 @@ ob_start();
         function increaseProfit() {
             const input = document.getElementById('min_profit');
             let value = parseFloat(input.value) || 0;
-            value = Math.round((value + 0.1) * 10) / 10;
+            value = Math.round((value + 0.1) * 100) / 100;
             if (value > 50) value = 50;
             updateProfitDisplay(value);
         }
@@ -566,7 +520,7 @@ ob_start();
         function decreaseProfit() {
             const input = document.getElementById('min_profit');
             let value = parseFloat(input.value) || 0;
-            value = Math.round((value - 0.1) * 10) / 10;
+            value = Math.round((value - 0.1) * 100) / 100;
             if (value < 0) value = 0;
             updateProfitDisplay(value);
         }
@@ -790,7 +744,7 @@ ob_start();
         .profit-input {
             text-align: center;
             font-weight: 600;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             border: 2px solid #dee2e6;
             transition: all 0.3s;
         }
@@ -826,13 +780,13 @@ ob_start();
 
         .profit-value-badge {
             display: inline-block;
-            padding: 0.5rem 1.5rem;
+            padding: 0.35rem 1.25rem;
             border-radius: 25px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             color: white;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            min-width: 80px;
+            min-width: 70px;
             text-align: center;
         }
 
@@ -892,8 +846,8 @@ ob_start();
 
         /* Filter Section */
         .filter-section {
-            padding: 1.5rem;
-            background: #f8f9fa;
+            padding: 1.25rem;
+            background: #ffffff;
             border-radius: 12px;
             height: 100%;
         }
