@@ -22,6 +22,42 @@ class OPLabAPIClient {
         ]);
     }
 
+    /**
+     * Obtém as próximas datas de vencimento disponíveis para um ativo
+     */
+    public function getOptionExpirations(string $ticker = "BBSE3", int $numExpirations = 3): array {
+        try {
+            $response = $this->client->get("market/options/{$ticker}");
+            $data = json_decode($response->getBody()->getContents(), true);
+
+            if (!is_array($data)) {
+                return [];
+            }
+
+            // Extrair datas de vencimento únicas
+            $expirations = [];
+            foreach ($data as $option) {
+                $dueDate = $option['due_date'] ?? null;
+                if ($dueDate) {
+                    $expirations[$dueDate] = true;
+                }
+            }
+
+            $uniqueExpirations = array_keys($expirations);
+            sort($uniqueExpirations);
+
+            $today = date('Y-m-d');
+            $futureExpirations = array_filter($uniqueExpirations, function($exp) use ($today) {
+                return $exp >= $today;
+            });
+
+            return array_slice(array_values($futureExpirations), 0, $numExpirations);
+        } catch (RequestException $e) {
+            error_log("Erro ao buscar vencimentos para {$ticker}: " . $e->getMessage());
+            return [];
+        }
+    }
+
     public function getStockData(string $symbol): ?array {
         try {
             $response = $this->client->get("market/stocks/{$symbol}");

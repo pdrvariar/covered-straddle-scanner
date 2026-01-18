@@ -196,15 +196,24 @@ include __DIR__ . '/layout/header.php';
                                            class="form-control"
                                            id="expiration_date"
                                            name="expiration_date"
-                                           value="<?= htmlspecialchars($params['expiration_date'] ?? date('Y-m-d', strtotime('+30 days'))) ?>"
+                                           value="<?= htmlspecialchars($params['expiration_date'] ?? ($dynamicExpirations[0] ?? date('Y-m-d', strtotime('+30 days')))) ?>"
                                            required>
                                 </div>
 
                                 <!-- Quick Expiration Buttons -->
                                 <div class="btn-group w-100" role="group">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="setExpiration(7)">7d</button>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="setExpiration(30)">30d</button>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="setExpiration(60)">60d</button>
+                                    <?php if (!empty($dynamicExpirations)): ?>
+                                        <?php foreach ($dynamicExpirations as $expDate): ?>
+                                            <?php 
+                                                $formatted = date('d/m/Y', strtotime($expDate));
+                                            ?>
+                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="setExpirationDate('<?= $expDate ?>')"><?= $formatted ?></button>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="setExpiration(7)">7d</button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="setExpiration(30)">30d</button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="setExpiration(60)">60d</button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -476,6 +485,17 @@ ob_start();
             showTickerFeedback(`Vencimento definido para ${days} dias`, 'info');
         }
 
+        // Set specific expiration date string (YYYY-MM-DD)
+        function setExpirationDate(dateStr) {
+            document.getElementById('expiration_date').value = dateStr;
+            
+            // Formatar data para exibição no feedback (opcional)
+            const parts = dateStr.split('-');
+            const formatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            
+            showTickerFeedback(`Vencimento definido para ${formatted}`, 'info');
+        }
+
         // Profit Input Functions
         function updateProfitDisplay(value) {
             const display = document.getElementById('profitValueDisplay');
@@ -548,10 +568,17 @@ ob_start();
                 }
 
                 // Reset expiration date
-                const defaultDate = new Date();
-                defaultDate.setDate(defaultDate.getDate() + 30);
+                const dynamicExpirations = <?= json_encode($dynamicExpirations ?? []) ?>;
                 const expInput = document.getElementById('expiration_date');
-                if (expInput) expInput.value = defaultDate.toISOString().split('T')[0];
+                if (expInput) {
+                    if (dynamicExpirations.length > 0) {
+                        expInput.value = dynamicExpirations[0];
+                    } else {
+                        const defaultDate = new Date();
+                        defaultDate.setDate(defaultDate.getDate() + 30);
+                        expInput.value = defaultDate.toISOString().split('T')[0];
+                    }
+                }
 
                 showTickerFeedback('Formulário resetado para valores padrão!', 'info');
             }
