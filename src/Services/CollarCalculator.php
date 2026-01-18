@@ -73,6 +73,59 @@ class CollarCalculator {
         $downsideProtection = (($currentPrice - $putStrike) / $currentPrice) * 100;
         $upsideCap = (($callStrike - $currentPrice) / $currentPrice) * 100;
 
+        // ========== CÁLCULO DE CENÁRIOS DETALHADOS (IGUAL AO PYTHON) ==========
+        $detailedScenarios = [
+            'Queda_30%' => $currentPrice * 0.7,
+            'Queda_Forte_(Put)' => $putStrike * 0.8,
+            'Queda_Moderada' => $putStrike * 0.9,
+            'No_Strike_Put' => $putStrike,
+            'Preço_Atual' => $currentPrice,
+            'No_Strike_Call' => $callStrike,
+            'Alta_Moderada' => $callStrike * 1.1,
+            'Alta_Forte_(Call)' => $callStrike * 1.2,
+            'Alta_30%' => $currentPrice * 1.3
+        ];
+
+        $scenariosResults = [];
+        foreach ($detailedScenarios as $name => $priceFinal) {
+            if ($priceFinal <= $putStrike) {
+                $lucroScenario = ($putStrike - $currentPrice) * $this->quantity - $netOptionCost;
+            } elseif ($priceFinal >= $callStrike) {
+                $lucroScenario = ($callStrike - $currentPrice) * $this->quantity - $netOptionCost;
+            } else {
+                $lucroScenario = ($priceFinal - $currentPrice) * $this->quantity - $netOptionCost;
+            }
+
+            $scenariosResults[] = [
+                'name' => str_replace('_', ' ', $name),
+                'price' => $priceFinal,
+                'profit' => $lucroScenario,
+                'profit_percent' => ($lucroScenario / $initialInvestment) * 100
+            ];
+        }
+
+        // Ordenar cenários por preço
+        usort($scenariosResults, function($a, $b) {
+            return $a['price'] <=> $b['price'];
+        });
+
+        // ========== COMPARAÇÃO COM SELIC LÍQUIDA (IGUAL AO PYTHON) ==========
+        // SELIC Bruta no período
+        $taxaSelicPeriodo = (pow(1 + $selicAnnual, $daysToMaturity / 365)) - 1;
+        $taxaSelicPeriodoPercent = $taxaSelicPeriodo * 100;
+        
+        // SELIC Líquida (descontando 22.5% de IR - conservador)
+        $taxaSelicPeriodoPercentNet = $taxaSelicPeriodoPercent * 0.775;
+        
+        $selicComparison = [
+            'selic_annual' => $selicAnnual * 100,
+            'days_to_maturity' => $daysToMaturity,
+            'selic_period_gross' => $taxaSelicPeriodoPercent,
+            'selic_period_net' => $taxaSelicPeriodoPercentNet,
+            'collar_min_profit' => $guaranteedProfitPercent,
+            'advantage_over_selic' => $guaranteedProfitPercent - $taxaSelicPeriodoPercentNet
+        ];
+
         // Valor extrínseco
         $callExtrinsicValue = max($callPremium - max($currentPrice - $callStrike, 0), 0);
         $putExtrinsicValue = max($putPremium - max($putStrike - $currentPrice, 0), 0);
@@ -95,13 +148,13 @@ class CollarCalculator {
                 // Payoff do Collar
                 if ($price <= $putStrike) {
                     // PUT é exercida
-                    $payoff = ($putStrike - $currentPrice) * $this->quantity - $putPremiumTotal + $callPremiumTotal;
+                    $payoff = ($putStrike - $currentPrice) * $this->quantity - $netOptionCost;
                 } elseif ($price >= $callStrike) {
                     // CALL é exercida
-                    $payoff = ($callStrike - $currentPrice) * $this->quantity - $putPremiumTotal + $callPremiumTotal;
+                    $payoff = ($callStrike - $currentPrice) * $this->quantity - $netOptionCost;
                 } else {
                     // Entre os strikes
-                    $payoff = ($price - $currentPrice) * $this->quantity - $putPremiumTotal + $callPremiumTotal;
+                    $payoff = ($price - $currentPrice) * $this->quantity - $netOptionCost;
                 }
 
                 $payoffs[] = $payoff;
@@ -159,6 +212,10 @@ class CollarCalculator {
             // SELIC
             'selic_annual' => $selicAnnual,
             'selic_period_return' => $selicPeriodReturn,
+            'selic_comparison' => $selicComparison,
+
+            // Cenários detalhados
+            'detailed_scenarios' => $scenariosResults,
 
             // Dados para gráfico
             'payoff_data' => $payoffData,

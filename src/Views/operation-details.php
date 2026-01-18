@@ -437,12 +437,12 @@ include __DIR__ . '/layout/header.php';
                             </div>
 
                             <div class="investment-item d-flex justify-content-between">
-                                <strong>Lucro Máximo Esperado:</strong>
+                                <strong>Lucro Máximo:</strong>
                                 <strong class="text-success">R$ <span id="max-profit"><?= number_format($operation['max_profit'], 2, ',', '.') ?></span></strong>
                             </div>
 
                             <div class="investment-item d-flex justify-content-between">
-                                <strong>Prejuízo Máximo:</strong>
+                                <strong>Lucro Mínimo:</strong>
                                 <strong class="text-danger">R$ <span id="max-loss"><?= number_format($operation['max_loss'], 2, ',', '.') ?></span></strong>
                             </div>
                         </div>
@@ -614,7 +614,7 @@ include __DIR__ . '/layout/header.php';
                                                 <strong>Ação acima do strike:</strong>
                                                 <br>• CALL é exercida - você vende as ações
                                                 <br>• PUT expira sem valor
-                                                <br>• Lucro máximo realizado
+                                                <br>• Lucro Máximo realizado
                                                 <br>• Retorno: <strong><?= number_format($operation['profit_percent'], 2, ',', '.') ?>%</strong>
                                             </p>
                                         </div>
@@ -655,7 +655,7 @@ include __DIR__ . '/layout/header.php';
                                                 <br>• PUT é exercida - você compra mais ações
                                                 <br>• CALL expira sem valor
                                                 <br>• Você fica com ações em baixa
-                                                <br>• Perda limitada ao <strong>prejuízo máximo</strong>
+                                                <br>• Perda limitada ao <strong>Lucro Mínimo</strong>
                                             </p>
                                         </div>
                                     </div>
@@ -714,7 +714,7 @@ include __DIR__ . '/layout/header.php';
                                                 <strong>Ação abaixo do PUT strike:</strong>
                                                 <br>• PUT é exercida - você vende as ações
                                                 <br>• CALL expira sem valor
-                                                <br>• Perda limitada pelo PUT strike
+                                                <br>• Lucro Mínimo garantido pelo PUT strike
                                                 <br>• Proteção: <strong>até <?= number_format((($operation['current_price'] - $operation['put_strike']) / $operation['current_price']) * 100, 1, ',', '.') ?>%</strong>
                                             </p>
                                         </div>
@@ -729,7 +729,7 @@ include __DIR__ . '/layout/header.php';
 
         <!-- Gráfico de Payoff -->
         <div class="row mt-4">
-            <div class="col-md-12">
+            <div class="col-md-7">
                 <div class="card detail-card">
                     <div class="card-header bg-primary text-white detail-card-header">
                         <h5 class="card-title mb-0">
@@ -741,14 +741,78 @@ include __DIR__ . '/layout/header.php';
                         <div style="height: 400px; position: relative;">
                             <canvas id="operationPayoffChart"></canvas>
                         </div>
-                        <div class="mt-3 text-center">
-                            <small class="text-muted">
-                                Este gráfico mostra o resultado financeiro projetado (Lucro/Prejuízo) da operação baseado no preço da ação no dia do vencimento.
-                            </small>
-                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Tabela de Cenários e SELIC (Apenas para Collar) -->
+            <?php if ($isCollar && !empty($operation['detailed_scenarios'])): ?>
+                <div class="col-md-5">
+                    <div class="card detail-card h-100">
+                        <div class="card-header bg-dark text-white detail-card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-list-alt me-2"></i>
+                                Cenários Detalhados
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Cenário</th>
+                                            <th>Preço Ação</th>
+                                            <th class="text-end">Retorno %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($operation['detailed_scenarios'] as $scenario): 
+                                            $isPositive = $scenario['profit_percent'] >= 0;
+                                            $isNeutral = abs($scenario['price'] - $operation['current_price']) < 0.01;
+                                        ?>
+                                            <tr class="<?= $isNeutral ? 'table-info fw-bold' : '' ?>">
+                                                <td><?= htmlspecialchars($scenario['name']) ?></td>
+                                                <td>R$ <?= number_format($scenario['price'], 2, ',', '.') ?></td>
+                                                <td class="text-end <?= $isPositive ? 'text-success' : 'text-danger' ?>">
+                                                    <?= number_format($scenario['profit_percent'], 2, ',', '.') ?>%
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Comparação SELIC -->
+                            <?php if (!empty($operation['selic_comparison'])): 
+                                $selicComp = $operation['selic_comparison'];
+                                $isBetterThanSelic = $selicComp['advantage_over_selic'] > 0;
+                            ?>
+                                <div class="p-3 bg-light border-top">
+                                    <h6 class="fw-bold mb-2">Comparação com SELIC</h6>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>SELIC Bruta (<?= $selicComp['days_to_maturity'] ?> dias):</span>
+                                        <span><?= number_format($selicComp['selic_period_gross'], 3, ',', '.') ?>%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>SELIC Líquida (-22,5% IR):</span>
+                                        <span class="fw-bold"><?= number_format($selicComp['selic_period_net'], 3, ',', '.') ?>%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Lucro Garantido Collar:</span>
+                                        <span class="fw-bold text-success"><?= number_format($selicComp['collar_min_profit'], 3, ',', '.') ?>%</span>
+                                    </div>
+                                    <div class="alert <?= $isBetterThanSelic ? 'alert-success' : 'alert-warning' ?> py-2 px-3 mb-0 small">
+                                        <i class="fas <?= $isBetterThanSelic ? 'fa-check-circle' : 'fa-exclamation-circle' ?> me-1"></i>
+                                        Vantagem sobre SELIC: <strong><?= number_format($selicComp['advantage_over_selic'], 3, ',', '.') ?>%</strong>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php else: ?>
+                <!-- Notas para Covered Straddle se necessário, ou placeholder -->
+            <?php endif; ?>
         </div>
 
         <!-- Notas Importantes -->
@@ -1218,25 +1282,51 @@ include __DIR__ . '/layout/header.php';
 
             // Definir faixa de preço
             let minPrice, maxPrice;
+            const callStrike = parseFloat(operationData.call_strike) || 0;
+            const putStrike = parseFloat(operationData.put_strike) || 0;
+
             if (isCoveredStraddle) {
                 minPrice = Math.max(0, currentPrice * 0.7);
                 maxPrice = currentPrice * 1.3;
             } else {
-                const callStrike = parseFloat(operationData.call_strike) || 0;
-                const putStrike = parseFloat(operationData.put_strike) || 0;
+                // Para o Collar, garantir que a faixa cubra os strikes com margem
                 minPrice = Math.max(0, Math.min(putStrike, currentPrice) * 0.8);
                 maxPrice = Math.max(callStrike, currentPrice) * 1.2;
             }
 
-            let step = (maxPrice - minPrice) / 40;
-
-            // Proteção contra loop infinito
-            if (step <= 0) step = 1;
-
             const labels = [];
             const data = [];
-
+            
+            // Gerar pontos de interesse para garantir o formato correto (especialmente as "quinas" nos strikes)
+            let points = [];
+            
+            // Pontos básicos (distribuídos linearmente)
+            let step = (maxPrice - minPrice) / 60;
             for (let s = minPrice; s <= maxPrice; s += step) {
+                points.push(s);
+            }
+            
+            // Adicionar pontos críticos (strikes e preço atual) para garantir precisão visual
+            if (isCollar) {
+                points.push(putStrike);
+                points.push(callStrike);
+                // Adicionar pontos ligeiramente antes e depois dos strikes para reforçar a mudança de inclinação
+                points.push(putStrike - 0.01);
+                points.push(putStrike + 0.01);
+                points.push(callStrike - 0.01);
+                points.push(callStrike + 0.01);
+            } else {
+                const strike = operationData.strike_price;
+                points.push(strike);
+                points.push(strike - 0.01);
+                points.push(strike + 0.01);
+            }
+            points.push(currentPrice);
+            
+            // Ordenar e remover duplicados/pontos fora da faixa
+            points = [...new Set(points.filter(p => p >= minPrice && p <= maxPrice))].sort((a, b) => a - b);
+
+            points.forEach(s => {
                 labels.push('R$ ' + formatBR(s, 2));
 
                 let payoff;
@@ -1245,13 +1335,11 @@ include __DIR__ . '/layout/header.php';
                     const lftsReturn = parseFloat(operationData.lfts11_return) || 0;
                     payoff = calculateCoveredStraddlePayoff(s, currentPrice, callPremium, putPremium, strike, quantity, lftsReturn);
                 } else {
-                    const callStrike = parseFloat(operationData.call_strike) || 0;
-                    const putStrike = parseFloat(operationData.put_strike) || 0;
                     payoff = calculateCollarPayoff(s, currentPrice, callPremium, putPremium, callStrike, putStrike, quantity);
                 }
 
                 data.push(payoff);
-            }
+            });
 
             if (payoffChart) {
                 payoffChart.destroy();
@@ -1268,8 +1356,15 @@ include __DIR__ . '/layout/header.php';
                             borderColor: isCollar ? '#0dcaf0' : '#0d6efd',
                             backgroundColor: isCollar ? 'rgba(13, 202, 240, 0.1)' : 'rgba(13, 110, 253, 0.1)',
                             fill: true,
-                            tension: 0.2,
-                            pointRadius: 0,
+                            tension: 0, // Removido suavização para mostrar as "quinas" exatas da estratégia
+                            pointRadius: function(context) {
+                                // Destacar pontos críticos
+                                const val = points[context.dataIndex];
+                                if (Math.abs(val - putStrike) < 0.02 || Math.abs(val - callStrike) < 0.02 || Math.abs(val - currentPrice) < 0.02) {
+                                    return 4;
+                                }
+                                return 0;
+                            },
                             borderWidth: 3
                         }]
                     },
@@ -1286,11 +1381,15 @@ include __DIR__ . '/layout/header.php';
                             },
                             tooltip: {
                                 callbacks: {
+                                    title: function(context) {
+                                        return 'Preço: ' + context[0].label;
+                                    },
                                     label: function(context) {
                                         return 'Resultado: R$ ' + formatBR(context.raw);
                                     }
                                 }
-                            }
+                            },
+                            // Adicionar anotações visuais se possível (depende do plugin, mas vamos tentar via desenho simples ou apenas legendas)
                         },
                         scales: {
                             x: {
@@ -1299,11 +1398,22 @@ include __DIR__ . '/layout/header.php';
                                     text: 'Preço da Ação no Vencimento'
                                 },
                                 grid: {
-                                    display: false
+                                    display: true,
+                                    color: 'rgba(0, 0, 0, 0.05)'
                                 },
                                 ticks: {
                                     maxRotation: 45,
-                                    minRotation: 45
+                                    minRotation: 45,
+                                    callback: function(value, index, values) {
+                                        // Mostrar apenas alguns labels para não poluir, mas garantir os strikes
+                                        const val = points[index];
+                                        if (Math.abs(val - putStrike) < 0.05 || Math.abs(val - callStrike) < 0.05 || Math.abs(val - currentPrice) < 0.05) {
+                                            return 'R$ ' + formatBR(val, 2);
+                                        }
+                                        // Retornar label normal a cada X pontos
+                                        if (index % 10 === 0) return 'R$ ' + formatBR(val, 2);
+                                        return null;
+                                    }
                                 }
                             },
                             y: {
@@ -1312,7 +1422,14 @@ include __DIR__ . '/layout/header.php';
                                     text: 'Lucro / Prejuízo (R$)'
                                 },
                                 grid: {
-                                    color: 'rgba(0, 0, 0, 0.05)'
+                                    color: function(context) {
+                                        if (context.tick.value === 0) return 'rgba(0, 0, 0, 0.5)'; // Linha de zero bem visível
+                                        return 'rgba(0, 0, 0, 0.05)';
+                                    },
+                                    lineWidth: function(context) {
+                                        if (context.tick.value === 0) return 2;
+                                        return 1;
+                                    }
                                 }
                             }
                         }
