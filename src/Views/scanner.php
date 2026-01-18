@@ -150,7 +150,7 @@ include __DIR__ . '/layout/header.php';
                                     <i class="fas fa-layer-group me-2"></i>
                                     Tipo de Estratégia
                                 </label>
-                                <select class="form-select form-select-lg" id="strategy_type" name="strategy_type">
+                                <select class="form-select form-select-lg" id="strategy_type" name="strategy_type" onchange="applyStrategyDefaults(this.value)">
                                     <option value="covered_straddle" selected>Covered Straddle</option>
                                     <option value="collar">Collar</option>
                                 </select>
@@ -409,6 +409,56 @@ include __DIR__ . '/layout/header.php';
 // Passar o JavaScript da página para o footer
 ob_start();
 ?>
+        // Configurações das Estratégias
+        const strategyDefaults = {
+            'covered_straddle': {
+                'tickers': 'BBAS3,PETR4,BBSE3,VALE3,ITSA4,CMIG4,TAEE11,CXSE3,ISAE4,WEGE3,CSMG3,EGIE3,ITUB4,GOAU4,BBDC3,KLBN11,AURE3,CMIN3,RANI3,LEVE3,SAPR11,B3SA3,ABEV3,KEPL3,BMGB4,JHSF3,AGRO3,ABCB4,CSAN3,BRAP4,CPFE3,PRIO3,PSSA3,FIQE3',
+                'strike': 2,
+                'min_profit': 2,
+                'liquidity': true,
+                'recency': true
+            },
+            'collar': {
+                'tickers': 'BOVA11,PETR4,VALE3,BBAS3,ITUB4,BBDC4,PRIO3,MBRF3,MGLU3,BRAV3,HAPV3,SMAL11,EMBJ3,ABEV3,SUZB3,WEGE3,TAEE11,B3SA3,BPAC11,VBBR3,BHIA3,PCAR3,RAIZ4,BEEF3,CSAN3',
+                'strike': 80,
+                'min_profit': 1,
+                'liquidity': true,
+                'recency': true
+            }
+        };
+
+        // Função para aplicar os valores padrão da estratégia
+        function applyStrategyDefaults(strategy, silent = false) {
+            const defaults = strategyDefaults[strategy];
+            if (!defaults) return;
+
+            // Atualizar Tickers
+            const tickersElement = document.getElementById('tickers');
+            if (tickersElement) tickersElement.value = defaults.tickers;
+
+            // Atualizar Strike
+            const strikeElement = document.getElementById('strike_range');
+            if (strikeElement) strikeElement.value = defaults.strike;
+
+            // Atualizar Lucro Mínimo
+            const profitElement = document.getElementById('min_profit');
+            if (profitElement) {
+                profitElement.value = defaults.min_profit;
+                updateProfitDisplay(defaults.min_profit);
+            }
+
+            // Atualizar Filtros
+            const liquidityElement = document.getElementById('filter_liquidity');
+            if (liquidityElement) liquidityElement.checked = defaults.liquidity;
+
+            const recencyElement = document.getElementById('filter_recency');
+            if (recencyElement) recencyElement.checked = defaults.recency;
+
+            if (!silent) {
+                showTickerFeedback(`Valores padrão para ${strategy} aplicados!`, 'info');
+            }
+        }
+
         // Add ticker to textarea
         function addTicker(ticker) {
             const textarea = document.getElementById('tickers');
@@ -533,8 +583,11 @@ ob_start();
                 document.getElementById('scannerForm').reset();
                 updateProfitDisplay(0);
 
-                // Reset to default tickers
-                document.getElementById('tickers').value = "<?= htmlspecialchars($defaultTickers) ?>";
+                // Reset to default strategy values
+                const strategyType = document.getElementById('strategy_type');
+                if (strategyType) {
+                    applyStrategyDefaults(strategyType.value);
+                }
 
                 // Reset expiration date
                 const defaultDate = new Date();
@@ -597,6 +650,12 @@ ob_start();
             const today = new Date().toISOString().split('T')[0];
             const expirationInput = document.getElementById('expiration_date');
             if (expirationInput) expirationInput.min = today;
+
+            // Aplicar padrões iniciais para a estratégia selecionada
+            const strategyType = document.getElementById('strategy_type');
+            if (strategyType) {
+                applyStrategyDefaults(strategyType.value, true);
+            }
 
             // Initialize tooltips
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
