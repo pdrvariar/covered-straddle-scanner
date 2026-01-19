@@ -14,6 +14,11 @@ $base_url .= "://" . $_SERVER['HTTP_HOST'];
 // Determine active page for sidebar
 $current_action = $_GET['action'] ?? 'dashboard';
 
+// Carregar estatísticas globais para o sidebar se não estiverem presentes
+if (!isset($stats)) {
+    $stats = (new \App\Models\Operation())->getStats();
+}
+
 // Set page title if not defined
 if (!isset($page_title)) {
     $page_title = 'Options Strategy';

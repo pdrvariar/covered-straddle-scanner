@@ -13,7 +13,7 @@
                     <div class="d-flex align-items-center">
                         <i class="fas fa-tachometer-alt me-3 fs-5"></i>
                         <span class="fw-medium">Dashboard</span>
-                        <span class="badge bg-primary ms-auto"><?= $stats['total_operations'] ?? 0 ?></span>
+                        <span class="badge bg-primary ms-auto"><?= $stats['total'] ?? 0 ?></span>
                     </div>
                 </a>
             </li>
@@ -31,7 +31,7 @@
                     <div class="d-flex align-items-center">
                         <i class="fas fa-history me-3 fs-5"></i>
                         <span class="fw-medium">Minhas Operações</span>
-                        <span class="badge bg-warning ms-auto"><?= $stats['active_operations'] ?? 0 ?></span>
+                        <span class="badge bg-warning ms-auto"><?= $stats['active'] ?? 0 ?></span>
                     </div>
                 </a>
             </li>
