@@ -51,7 +51,16 @@ class CollarCalculator {
         $bestProfit = max($profitIfRise, $profitIfFall, $profitIfSideways);
 
         // Ponto de equilíbrio (onde lucro = 0)
-        $breakeven = $currentPrice + ($putPremiumTotal - $callPremiumTotal) / $this->quantity;
+        // Lucro = (S - currentPrice) + callPremium - putPremium = 0
+        // S = currentPrice - callPremium + putPremium
+        $breakeven = $currentPrice - $callPremium + $putPremium;
+        
+        // Se no strike da PUT o lucro já é positivo, não há BEP
+        // Lucro_Put = (putStrike - currentPrice) + callPremium - putPremium
+        $lucroNoStrikePut = ($putStrike - $currentPrice) + $callPremium - $putPremium;
+        if ($lucroNoStrikePut > 0) {
+            $breakeven = 0; // Ou outro sinalizador
+        }
 
         // Margem de Segurança da Operação (MSO)
         $mso = (($currentPrice - $breakeven) / $currentPrice) * 100;

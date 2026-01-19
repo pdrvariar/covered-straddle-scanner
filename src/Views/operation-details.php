@@ -961,13 +961,21 @@ include __DIR__ . '/layout/header.php';
          * Calcula o payoff para Collar
          */
         function calculateCollarPayoff(s, currentPrice, callPremium, putPremium, callStrike, putStrike, quantity) {
-            let payoff = (s - currentPrice) * quantity; // payoff da ação
+            let payoff;
+            
+            if (s <= putStrike) {
+                // PUT é exercida: vende pelo strike da PUT
+                payoff = (putStrike - currentPrice) * quantity;
+            } else if (s >= callStrike) {
+                // CALL é exercida: vende pelo strike da CALL
+                payoff = (callStrike - currentPrice) * quantity;
+            } else {
+                // Entre os strikes: permanece com a ação pelo preço s
+                payoff = (s - currentPrice) * quantity;
+            }
 
-            // Payoff da CALL vendida (limita ganhos)
-            payoff += (callPremium - Math.max(0, s - callStrike)) * quantity;
-
-            // Payoff da PUT comprada (protege perdas)
-            payoff += (-putPremium + Math.max(0, putStrike - s)) * quantity;
+            // Prêmios: recebe da CALL e paga pela PUT
+            payoff += (callPremium - putPremium) * quantity;
 
             return payoff;
         }
@@ -1058,15 +1066,24 @@ include __DIR__ . '/layout/header.php';
                     const initialInvestment = stockInvestment + putTotalCost - callTotalRevenue;
 
                     // Max Profit para Collar (quando S_T >= callStrike)
-                    const maxProfit = ((callStrike - currentPrice) * quantity) - putTotalCost + callTotalRevenue;
+                    const maxProfit = ((callStrike - currentPrice) * quantity) + (callPremium - putPremium) * quantity;
 
                     // Max Loss para Collar (quando S_T <= putStrike)
-                    const maxLoss = ((putStrike - currentPrice) * quantity) - putTotalCost + callTotalRevenue;
+                    const maxLoss = ((putStrike - currentPrice) * quantity) + (callPremium - putPremium) * quantity;
 
                     const profitPercent = initialInvestment > 0 ? (maxProfit / initialInvestment) * 100 : 0;
 
-                    // BEP para Collar: currentPrice + (putPremium - callPremium)
-                    const bep = currentPrice + (putPremium - callPremium);
+                    // BEP para Collar: currentPrice - callPremium + putPremium
+                    // Pois Lucro = (S - currentPrice) + callPremium - putPremium = 0 => S = currentPrice - callPremium + putPremium
+                    // Isso vale se o BEP estiver entre os strikes.
+                    let bep = currentPrice - callPremium + putPremium;
+                    
+                    // Se o lucro no strike da put já for positivo, não há BEP (investidor ganha mesmo na queda)
+                    // X = putStrike - currentPrice + callPremium - putPremium
+                    const X = (putStrike - currentPrice) + (callPremium - putPremium);
+                    if (X > 0) {
+                        bep = 0; // Ou algum indicador de que não há BEP / lucro garantido
+                    }
 
                     // MSO para Collar
                     const mso = currentPrice > 0 ? ((currentPrice - bep) / currentPrice) * 100 : 0;
@@ -1244,7 +1261,11 @@ include __DIR__ . '/layout/header.php';
             // Atualizar lista de BEPs
             const breakevensList = document.getElementById('breakevens-list');
             if (breakevensList) {
-                breakevensList.innerHTML = `<span class="badge bg-info">R$ ${formatBR(bep)}</span>`;
+                if (bep > 0) {
+                    breakevensList.innerHTML = `<span class="badge bg-info">R$ ${formatBR(bep)}</span>`;
+                } else {
+                    breakevensList.innerHTML = `<span class="badge bg-success">Lucro Garantido (Sem BEP)</span>`;
+                }
             }
 
             // Perda Máxima
