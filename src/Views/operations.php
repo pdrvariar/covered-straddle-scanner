@@ -264,8 +264,9 @@ ob_start();
                     else alert('Operação excluída com sucesso!');
                     setTimeout(() => location.reload(), 1500);
                 } else {
-                    if (typeof showError === 'function') showError('Erro ao excluir operação: ' + data.message);
-                    else alert('Erro ao excluir operação: ' + data.message);
+                    const errorMsg = data.message || data.error || 'Erro desconhecido';
+                    if (typeof showError === 'function') showError('Erro ao excluir operação: ' + errorMsg);
+                    else alert('Erro ao excluir operação: ' + errorMsg);
                 }
             })
             .catch(error => {

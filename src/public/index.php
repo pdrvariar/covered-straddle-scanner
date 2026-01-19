@@ -60,6 +60,9 @@ if (strpos($path, '/api/') === 0) {
         case 'save':
             $api->saveOperation();
             break;
+        case 'operations/delete':
+            $api->deleteOperation();
+            break;
         default:
             if (isset($params['id'])) {
                 $api->getOperation($params['id']);

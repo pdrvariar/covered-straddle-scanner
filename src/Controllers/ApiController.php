@@ -180,16 +180,19 @@ class ApiController {
 
             try {
                 $operationId = $data['operation_id'];
-                $db = Database::getConnection();
+                $success = Operation::delete($operationId);
 
-                $sql = "DELETE FROM operations WHERE id = :id";
-                $stmt = $db->prepare($sql);
-                $stmt->execute([':id' => $operationId]);
-
-                echo json_encode(['success' => true, 'message' => 'Operação excluída com sucesso']);
-            } catch (Exception $e) {
+                if ($success) {
+                    echo json_encode(['success' => true, 'message' => 'Operação excluída com sucesso']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Não foi possível excluir a operação. Verifique se ela existe e pertence ao seu usuário.']);
+                }
+            } catch (\Exception $e) {
                 echo json_encode(['success' => false, 'message' => 'Erro ao excluir operação: ' . $e->getMessage()]);
             }
+        } else {
+            header('HTTP/1.1 405 Method Not Allowed');
+            echo json_encode(['success' => false, 'message' => 'Método não permitido']);
         }
     }
 }
