@@ -294,19 +294,31 @@ include __DIR__ . '/layout/header.php';
                                             Qualidade
                                         </label>
 
-                                        <div class="d-flex flex-column gap-2">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="filter_liquidity" name="filter_liquidity" <?= (!isset($filters['filter_liquidity']) || $filters['filter_liquidity']) ? 'checked' : '' ?>>
-                                                <label class="form-check-label small" for="filter_liquidity">
-                                                    Liquidez <span class="text-muted">(Spread ≤ 0,05)</span>
-                                                </label>
+                                        <div class="d-flex flex-column gap-3">
+                                            <div>
+                                                <div class="form-check form-switch mb-1">
+                                                    <input class="form-check-input" type="checkbox" id="filter_liquidity" name="filter_liquidity" <?= (!isset($filters['filter_liquidity']) || $filters['filter_liquidity']) ? 'checked' : '' ?>>
+                                                    <label class="form-check-label small fw-semibold" for="filter_liquidity">
+                                                        Liquidez (Spread)
+                                                    </label>
+                                                </div>
+                                                <div class="input-group input-group-sm mt-1" id="spread_input_group" style="<?= (isset($filters['filter_liquidity']) && !$filters['filter_liquidity']) ? 'display: none;' : '' ?>">
+                                                    <span class="input-group-text">Máx Spread R$</span>
+                                                    <input type="number" step="0.01" class="form-control" name="max_spread" value="<?= $filters['max_spread'] ?? '0.05' ?>">
+                                                </div>
                                             </div>
 
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="filter_recency" name="filter_recency" <?= (!isset($filters['filter_recency']) || $filters['filter_recency']) ? 'checked' : '' ?>>
-                                                <label class="form-check-label small" for="filter_recency">
-                                                    Recência <span class="text-muted">(≤ 5 min)</span>
-                                                </label>
+                                            <div>
+                                                <div class="form-check form-switch mb-1">
+                                                    <input class="form-check-input" type="checkbox" id="filter_recency" name="filter_recency" <?= (!isset($filters['filter_recency']) || $filters['filter_recency']) ? 'checked' : '' ?>>
+                                                    <label class="form-check-label small fw-semibold" for="filter_recency">
+                                                        Recência (Tempo)
+                                                    </label>
+                                                </div>
+                                                <div class="input-group input-group-sm mt-1" id="recency_input_group" style="<?= (isset($filters['filter_recency']) && !$filters['filter_recency']) ? 'display: none;' : '' ?>">
+                                                    <span class="input-group-text">Máx Minutos</span>
+                                                    <input type="number" step="1" class="form-control" name="max_recency" value="<?= $filters['max_recency'] ?? '5' ?>">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -416,6 +428,13 @@ ob_start();
 
             const recencyElement = document.getElementById('filter_recency');
             if (recencyElement) recencyElement.checked = defaults.recency;
+
+            // Mostrar/Ocultar campos de qualidade baseados no padrão
+            const spreadInputGroup = document.getElementById('spread_input_group');
+            if (spreadInputGroup) spreadInputGroup.style.display = defaults.liquidity ? 'flex' : 'none';
+
+            const recencyInputGroup = document.getElementById('recency_input_group');
+            if (recencyInputGroup) recencyInputGroup.style.display = defaults.recency ? 'flex' : 'none';
 
             if (!silent) {
                 showTickerFeedback(`Valores padrão para ${strategy} aplicados!`, 'info');
@@ -649,6 +668,23 @@ ob_start();
 
             // Initialize profit display
             updateProfitDisplay(document.getElementById('min_profit').value);
+
+            // Listeners para os switches de qualidade
+            const liquidezSwitch = document.getElementById('filter_liquidity');
+            const spreadGroup = document.getElementById('spread_input_group');
+            if (liquidezSwitch && spreadGroup) {
+                liquidezSwitch.addEventListener('change', function() {
+                    spreadGroup.style.display = this.checked ? 'flex' : 'none';
+                });
+            }
+
+            const recenciaSwitch = document.getElementById('filter_recency');
+            const recenciaGroup = document.getElementById('recency_input_group');
+            if (recenciaSwitch && recenciaGroup) {
+                recenciaSwitch.addEventListener('change', function() {
+                    recenciaGroup.style.display = this.checked ? 'flex' : 'none';
+                });
+            }
         });
 
         // Show feedback for ticker operations

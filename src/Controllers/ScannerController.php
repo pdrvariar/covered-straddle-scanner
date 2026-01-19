@@ -72,6 +72,8 @@ class ScannerController {
                 $filters = [
                     'filter_liquidity' => isset($_POST['filter_liquidity']),
                     'filter_recency' => isset($_POST['filter_recency']),
+                    'max_spread' => (float)($_POST['max_spread'] ?? 0.05),
+                    'max_recency' => (int)($_POST['max_recency'] ?? 5),
                     'min_profit' => (float)($_POST['min_profit'] ?? 0),
                     'strategy_type' => $_POST['strategy_type'] ?? 'covered_straddle',
                     'strike_range' => (float)($_POST['strike_range'] ?? 2.0)

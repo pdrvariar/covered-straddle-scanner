@@ -146,11 +146,13 @@ class OPLabAPIClient {
             $strikeRangePercent = (float)($filters['strike_range'] ?? 2.0);
             $strikeLimit = $currentPrice * ($strikeRangePercent / 100.0); 
             
-            $maxAgeMs = 300000; // 5 minutos
+            $maxRecencyMinutes = (int)($filters['max_recency'] ?? 5);
+            $maxAgeMs = $maxRecencyMinutes * 60 * 1000;
             $nowMs = time() * 1000;
 
             $applyRecencyFilter = $filters['filter_recency'] ?? true;
             $applyLiquidityFilter = $filters['filter_liquidity'] ?? true;
+            $maxSpread = (float)($filters['max_spread'] ?? 0.05);
 
             $atmOptions = [];
 
@@ -167,7 +169,7 @@ class OPLabAPIClient {
                     continue;
                 }
 
-                // Verificar strike (ATM ±10%)
+                // Verificar strike (ATM ±X%)
                 $strike = $option['strike'] ?? 0;
                 if (abs($strike - $currentPrice) > $strikeLimit) {
                     continue;
@@ -187,7 +189,7 @@ class OPLabAPIClient {
                     $ask = $option['ask'] ?? 0;
 
                     // Verificar se há bid/ask válidos e spread aceitável
-                    if ($bid <= 0 || $ask <= 0 || abs($ask - $bid) > 0.05) {
+                    if ($bid <= 0 || $ask <= 0 || abs($ask - $bid) > $maxSpread) {
                         continue;
                     }
                 }
