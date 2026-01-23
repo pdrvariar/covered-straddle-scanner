@@ -143,6 +143,9 @@ class CoveredStraddleStrategy implements IOptionStrategy {
                 $straddleData = [
                     'symbol' => $symbol,
                     'current_price' => $currentPrice,
+                    'iv_current' => $stockData['iv_current'] ?? null,
+                    'iv_1y_rank' => $stockData['iv_1y_rank'] ?? null,
+                    'iv_1y_percentile' => $stockData['iv_1y_percentile'] ?? null,
                     'call_symbol' => $call['symbol'],
                     'call_premium' => $callPremium,
                     'put_symbol' => $put['symbol'],

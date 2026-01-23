@@ -6,6 +6,7 @@ use App\Config\Database;
 use App\Models\Operation;
 use App\Services\OPLabAPIClient;
 use App\Services\StrategyEngine;
+use App\Services\CoveredStraddleRanker;
 
 class ScannerController {
     private $db;
@@ -97,13 +98,25 @@ class ScannerController {
                     }
                 }
 
-                // Ordenar do MAIOR para o MENOR MSO (Margem de Segurança da Operação)
+                // 1. Ordenação inicial para definir o "ranking do sistema" baseado em rentabilidade
                 usort($results, function($a, $b) {
-                    // Usar a menor rentabilidade entre os cenários de alta e queda
                     $rentA = min($a['profit_if_rise_percent'] ?? 0, $a['profit_if_fall_percent'] ?? 0);
                     $rentB = min($b['profit_if_rise_percent'] ?? 0, $b['profit_if_fall_percent'] ?? 0);
                     return $rentB <=> $rentA;
                 });
+
+                // 2. Adicionar o ranking_sistema
+                foreach ($results as $index => &$res) {
+                    $res['ranking_sistema'] = $index + 1;
+                }
+
+                // 3. Aplicar o algoritmo de ordenação especializado (CoveredStraddleRanker)
+                if (($filters['strategy_type'] ?? 'covered_straddle') === 'covered_straddle') {
+                    $ranker = new CoveredStraddleRanker();
+                    $results = $ranker->ordenarOperacoes($results);
+                } else {
+                    // Fallback para outras estratégias: manter ordenação por rentabilidade
+                }
 
                 // Store in session for later use
                 $_SESSION['scan_results'] = $results;

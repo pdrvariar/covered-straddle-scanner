@@ -33,7 +33,7 @@ include __DIR__ . '/layout/header.php';
                 <div class="text-end d-flex align-items-center gap-3">
                     <span class="badge bg-white text-primary fs-6">
                         <i class="fas fa-sort-amount-down me-1"></i>
-                        Ordenado por Margem de Segurança (MSO)
+                        <?= $strategyType === 'covered_straddle' ? 'Ordenado por Score de Qualidade' : 'Ordenado por Lucratividade' ?>
                     </span>
                     <a href="/?action=scan" class="btn btn-light btn-sm">
                         <i class="fas fa-arrow-left me-1"></i> Voltar
@@ -180,6 +180,20 @@ include __DIR__ . '/layout/header.php';
                             <div class="ranking-badge">
                                 #<?= $index + 1 ?>
                             </div>
+                            <?php if (isset($res['classificacao'])): ?>
+                                <?php 
+                                    $classColor = 'bg-secondary';
+                                    if ($res['classificacao'] === 'EXCELENTE') $classColor = 'bg-success';
+                                    elseif ($res['classificacao'] === 'MUITO BOA') $classColor = 'bg-primary';
+                                    elseif ($res['classificacao'] === 'BOA') $classColor = 'bg-info';
+                                    elseif ($res['classificacao'] === 'REGULAR') $classColor = 'bg-warning text-dark';
+                                ?>
+                                <div class="position-absolute" style="top: 10px; left: 60px; z-index: 10;">
+                                    <span class="badge <?= $classColor ?> border shadow-sm" style="font-size: 0.65rem;">
+                                        <?= $res['classificacao'] ?>
+                                    </span>
+                                </div>
+                            <?php endif; ?>
                             <div class="strategy-badge <?= $isCollar ? 'bg-info' : 'bg-primary' ?>">
                                 <?= $isCollar ? 'Collar' : 'Covered Straddle' ?>
                             </div>
@@ -190,6 +204,11 @@ include __DIR__ . '/layout/header.php';
                                         <h5 class="card-title mb-0">
                                             <i class="fas fa-chart-line me-2 <?= $isCollar ? 'text-info' : 'text-primary' ?>"></i>
                                             <?= htmlspecialchars($res['symbol']) ?>
+                                            <?php if (isset($res['score'])): ?>
+                                                <span class="badge bg-dark ms-2" title="Score de Qualidade (0-100)" style="font-size: 0.8rem; vertical-align: middle;">
+                                                    <?= number_format($res['score'], 0) ?> pts
+                                                </span>
+                                            <?php endif; ?>
                                         </h5>
                                         <small class="text-muted">
                                             Ranking: <?= $index + 1 ?> de <?= count($results) ?>
@@ -218,6 +237,18 @@ include __DIR__ . '/layout/header.php';
                                         <?php endif; ?>
                                     </div>
                                 </div>
+
+                                <!-- Volatilidade (IV) -->
+                                <?php if (isset($res['iv_1y_percentile'])): ?>
+                                    <div class="row mb-3 small">
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between align-items-center p-2 rounded bg-opacity-10 <?= $res['iv_1y_percentile'] > 70 ? 'bg-success border border-success' : ($res['iv_1y_percentile'] > 40 ? 'bg-primary border border-primary' : 'bg-warning border border-warning') ?>">
+                                                <span><i class="fas fa-wind me-1"></i> IV Percentile:</span>
+                                                <span class="fw-bold"><?= number_format($res['iv_1y_percentile'], 1) ?>%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
 
                                 <!-- Retorno Principal -->
                                 <div class="p-3 bg-light rounded mb-3">
@@ -345,6 +376,11 @@ include __DIR__ . '/layout/header.php';
                                             CALL: <?= number_format((($res['call_strike'] ?? $res['strike_price']) - $res['current_price']) / $res['current_price'] * 100, 1, ',', '.') ?>%
                                         <?php else: ?>
                                             Margem: <?= number_format((($res['strike_price'] - $res['current_price']) / $res['current_price'] * 100), 1, ',', '.') ?>%
+                                            <?php
+                                                $callOtm = ($res['strike_price'] > $res['current_price']);
+                                                $distance = (($res['strike_price'] - $res['current_price']) / $res['current_price'] * 100);
+                                            ?>
+                                            CALL <?= $callOtm ? 'OTM' : 'ITM' ?>: <?= number_format($distance, 1, ',', '.') ?>%
                                         <?php endif; ?>
                                     </div>
                                     <div class="col-6 text-end">
@@ -556,7 +592,7 @@ ob_start();
 
     // Definir cabeçalhos
     const headers = [
-    'Ranking', 'Estratégia', 'Símbolo', 'Preço Atual', 'CALL Strike', 'PUT Strike',
+    'Ranking', 'Score', 'Classificação', 'Estratégia', 'Símbolo', 'IV Percentile', 'Preço Atual', 'CALL Strike', 'PUT Strike',
     'Vencimento', 'Dias', 'CALL', 'Prêmio CALL', 'PUT', 'Prêmio PUT',
     'Retorno %', 'Lucro Máximo', 'Investimento Total', 'Custo PUT',
     'LFTS11 Investimento', 'LFTS11 Cotas', 'SELIC %', 'Data Análise'
@@ -573,8 +609,11 @@ ob_start();
 
     return [
     index + 1,
+    res.score || 0,
+    res.classificacao || '-',
     isCollar ? 'Collar' : 'Covered Straddle',
     res.symbol,
+    (res.iv_1y_percentile || 0).toFixed(2).replace('.', ','),
     res.current_price.toFixed(2).replace('.', ','),
     callStrike.toFixed(2).replace('.', ','),
     putStrike.toFixed(2).replace('.', ','),

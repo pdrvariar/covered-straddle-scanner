@@ -950,11 +950,14 @@ include __DIR__ . '/layout/header.php';
          * Calcula o payoff para Covered Straddle
          */
         function calculateCoveredStraddlePayoff(s, currentPrice, callPremium, putPremium, strike, quantity, lftsReturn) {
-            let payoff = (s - currentPrice) * quantity; // payoff da ação
-            payoff += (callPremium - Math.max(0, s - strike)) * quantity; // payoff da call vendida
-            payoff += (putPremium - Math.max(0, strike - s)) * quantity; // payoff da put vendida
-            payoff += lftsReturn; // retorno do LFTS11
-            return payoff;
+            // CORREÇÃO: Incluir cálculo correto do payoff total
+            const stockPayoff = (s - currentPrice) * quantity;
+            const callPayoff = (callPremium - Math.max(0, s - strike)) * quantity;
+            const putPayoff = (putPremium - Math.max(0, strike - s)) * quantity;
+            const totalPayoff = stockPayoff + callPayoff + putPayoff + lftsReturn;
+
+            // CORREÇÃO: Retornar payoff por ação para gráfico mais limpo
+            return totalPayoff / quantity;
         }
 
         /**
@@ -1031,6 +1034,9 @@ include __DIR__ . '/layout/header.php';
                     const initialInvestment = stockInvestment + lftsInvestment - totalPremiums;
                     const maxProfit = ((strike - currentPrice) * quantity) + totalPremiums + lftsReturn;
                     const profitPercent = initialInvestment > 0 ? (maxProfit / initialInvestment) * 100 : 0;
+
+                    const monthlyProfitPercent = $profitPercent * Math.sqrt(30 / daysToMaturity);
+                    const annualProfit = $profitPercent * Math.sqrt(365 / daysToMaturity);
 
                     // BEP para Covered Straddle
                     let bep = 0;

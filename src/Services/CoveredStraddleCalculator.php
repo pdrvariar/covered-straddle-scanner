@@ -135,8 +135,14 @@ class CoveredStraddleCalculator {
         $mso = (($currentPrice - $bep) / $currentPrice) * 100;
 
         $profitPercent = ($maxProfit / $initialInvestment) * 100;
-        $monthlyProfit = $maxProfit * (30 / $daysToMaturity);
-        $monthlyProfitPercent = ($monthlyProfit / $initialInvestment) * 100;
+
+        // CORREÇÃO: Retorno mensal não é linear! Usar aproximação raiz quadrada
+        // $monthlyProfit = $maxProfit * (30 / $daysToMaturity); // ERRADO
+        // $monthlyProfitPercent = ($monthlyProfit / $initialInvestment) * 100; // ERRADO
+
+        // CORREÇÃO: Retorno mensal proporcional à raiz quadrada do tempo
+        $monthlyProfitPercent = $daysToMaturity > 0 ? $profitPercent * sqrt(30 / $daysToMaturity) : 0;
+        $monthlyProfit = $initialInvestment * ($monthlyProfitPercent / 100);
 
         // Cálculo de valor intrínseco e extrínseco
         $callIntrinsicValue = max($currentPrice - $strike, 0);
@@ -163,13 +169,13 @@ class CoveredStraddleCalculator {
             'total_premiums' => $totalPremiums,
             'total_guarantee_needed' => $totalGuaranteeNeeded,
 
-            // Retornos
+            // Retornos - CORRIGIDO
             'initial_investment' => $initialInvestment,
             'max_profit' => $maxProfit,
             'max_loss' => $maxLoss,
             'profit_percent' => $profitPercent,
             'monthly_profit' => $monthlyProfit,
-            'monthly_profit_percent' => $monthlyProfitPercent,
+            'monthly_profit_percent' => $monthlyProfitPercent, // AGORA CORRETO
 
             // Taxas e retornos
             'selic_annual' => $selicAnnual,
