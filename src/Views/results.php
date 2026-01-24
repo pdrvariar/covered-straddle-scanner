@@ -211,21 +211,21 @@ $avgProfit = $totalResults > 0 ? $totalProfit / $totalResults : 0;
 
                         <div class="card h-100 result-card <?= $cardBorderClass ?>">
                             <!-- Badge de Estratégia -->
-                            <div class="position-absolute top-0 end-0 m-2">
-                            <span class="badge <?= $isCollar ? 'bg-info' : 'bg-primary' ?>">
+                            <div class="position-absolute top-0 end-0 mt-n2 me-2">
+                            <span class="badge <?= $isCollar ? 'bg-info' : 'bg-primary' ?> shadow-sm">
                                 <?= $isCollar ? 'Collar' : 'Covered Straddle' ?>
                             </span>
                             </div>
 
                             <!-- Badge de Ranking -->
-                            <div class="position-absolute top-0 start-0 m-2">
-                                <span class="badge bg-dark">#<?= $index + 1 ?></span>
+                            <div class="position-absolute top-0 start-0 mt-n2 ms-2">
+                                <span class="badge bg-dark shadow-sm">#<?= $index + 1 ?></span>
                             </div>
 
                             <!-- Badge de Classificação -->
                             <?php if ($classification): ?>
-                                <div class="position-absolute top-0 start-50 translate-middle-x mt-2">
-                                <span class="badge <?= $score >= 85 ? 'bg-success' : ($score >= 75 ? 'bg-primary' : 'bg-secondary') ?>">
+                                <div class="position-absolute top-0 start-50 translate-middle-x mt-n2">
+                                <span class="badge <?= $score >= 85 ? 'bg-success' : ($score >= 75 ? 'bg-primary' : 'bg-secondary') ?> shadow-sm">
                                     <?= $classification ?>
                                 </span>
                                 </div>
@@ -531,11 +531,25 @@ $avgProfit = $totalResults > 0 ? $totalProfit / $totalResults : 0;
 
         .result-card {
             transition: transform 0.3s, box-shadow 0.3s;
+            overflow: visible !important; /* Permitir que badges fiquem levemente para fora se necessário */
         }
 
         .result-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        /* Ajuste para os badges não sobreporem o conteúdo */
+        .result-card .position-absolute.top-0 {
+            z-index: 10;
+        }
+
+        .result-card .card-body {
+            padding-top: 1.5rem; /* Aumentar o padding superior para dar mais espaço */
+        }
+
+        .mt-n2 {
+            margin-top: -12px !important;
         }
     </style>
 
