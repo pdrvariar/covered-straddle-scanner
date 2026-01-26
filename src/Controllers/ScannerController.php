@@ -114,6 +114,9 @@ class ScannerController {
                 if (($filters['strategy_type'] ?? 'covered_straddle') === 'covered_straddle') {
                     $ranker = new CoveredStraddleRanker();
                     $results = $ranker->ordenarOperacoes($results);
+                } elseif (($filters['strategy_type'] ?? '') === 'collar') {
+                    $ranker = new CollarRanker();
+                    $results = $ranker->ordenarOperacoes($results);
                 } else {
                     // Fallback para outras estratégias: manter ordenação por rentabilidade
                 }
