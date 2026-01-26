@@ -137,6 +137,8 @@ $page_title = "Detalhes da Operação ({$strategyName}) - Options Strategy";
 include __DIR__ . '/layout/header.php';
 ?>
 
+    <input type="hidden" id="operation-symbol" value="<?= htmlspecialchars($operation['symbol']) ?>">
+
     <div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1050; pointer-events: none;"></div>
     <div class="content-wrapper">
         <nav aria-label="breadcrumb">
@@ -879,6 +881,216 @@ include __DIR__ . '/layout/header.php';
                 console.error('Erro nos cálculos:', error);
             }
         }
+        // Adicione este código ao final do script no arquivo operation-details.php, antes do fechamento do script
+
+        // Função auxiliar para notificações (caso não exista no seu global)
+        function showNotification(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+            alertContainer.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 4000);
+        }
+
+        function saveOperation(event) {
+            event.preventDefault();
+
+            // 2. Coleta os valores atualizados dos inputs (caso você tenha alterado algo na tela)
+            const currentPrice = parseFloat(document.getElementById('input-current-price').value) || 0;
+            const callPremium = parseFloat(document.getElementById('input-call-premium').value) || 0;
+            const putPremium = parseFloat(document.getElementById('input-put-premium').value) || 0;
+            const quantity = parseFloat(document.getElementById('input-quantity').value) || 0;
+
+            // 3. Helper para converter strings formatadas em PT-BR ("1.250,00") para Float (1250.00)
+            const parseBR = (id) => {
+                const el = document.getElementById(id);
+                if (!el) return 0;
+                return parseFloat(el.textContent.replace(/\./g, '').replace(',', '.')) || 0;
+            };
+
+            // 4. Montagem do objeto de operação para o backend
+            const operationToSave = {
+                ...operationData, // Mantém os dados originais (vencimento, strikes originais, etc)
+                current_price: currentPrice,
+                call_premium: callPremium,
+                put_premium: putPremium,
+                quantity: quantity,
+                strategy_type: isCollar ? 'collar' : 'covered_straddle',
+
+                // Captura métricas calculadas na tela (formatadas para float)
+                initial_investment: parseBR('initial-investment'),
+                max_profit: parseBR('max-profit'),
+                profit_percent: parseBR('resumo-retorno'),
+                monthly_profit_percent: parseBR('resumo-mensal'),
+                mso: parseBR('resumo-mso')
+            };
+
+            // Ajustes específicos por estratégia
+            if (isCollar) {
+                operationToSave.call_strike = operationData.call_strike || operationData.strike_price;
+                operationToSave.put_strike = operationData.put_strike || operationData.strike_price;
+            }
+
+            if (isCoveredStraddle) {
+                operationToSave.lfts11_price = lfts11Price;
+                operationToSave.lfts11_quantity = parseInt(document.getElementById('display-lfts-quantity')?.textContent.replace(/\./g, '') || 0);
+                operationToSave.lfts11_investment = parseBR('display-lfts-investment');
+                operationToSave.lfts11_return = parseBR('financeira-lfts-return');
+            }
+
+            // 5. Envio dos dados via AJAX para o Controller
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
+
+            fetch('/?action=save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ operation: operationToSave })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Notificação de sucesso
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3';
+                        alertDiv.style.zIndex = '9999';
+                        alertDiv.innerHTML = `<strong>Sucesso!</strong> ${data.message} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+                        document.body.appendChild(alertDiv);
+
+                        // Se for uma operação nova, redireciona para a view de detalhes com o ID do banco
+                        if (data.id) {
+                            setTimeout(() => { window.location.href = `/?action=details&id=${data.id}`; }, 1500);
+                        }
+                    } else {
+                        alert('Erro ao salvar: ' + (data.error || 'Erro desconhecido.'));
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro no fetch:', error);
+                    alert('Falha na comunicação com o servidor.');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                });
+        }
+
+        function exportOperation(event) {
+            event.preventDefault();
+
+            // Criar objeto com todos os dados da operação
+            const operation = {
+                ...operationData,
+                current_price: parseFloat(document.getElementById('input-current-price').value) || 0,
+                call_premium: parseFloat(document.getElementById('input-call-premium').value) || 0,
+                put_premium: parseFloat(document.getElementById('input-put-premium').value) || 0,
+                quantity: parseFloat(document.getElementById('input-quantity').value) || 0,
+                strategy_type: isCollar ? 'collar' : 'covered_straddle'
+            };
+
+            // Criar CSV
+            const csvRows = [];
+            const headers = ['Campo', 'Valor', 'Descrição'];
+            csvRows.push(headers.join(';'));
+
+            // Adicionar dados básicos
+            csvRows.push(['Símbolo', operation.symbol, 'Ativo base']);
+            csvRows.push(['Estratégia', isCollar ? 'Collar' : 'Covered Straddle', 'Tipo de estratégia']);
+            csvRows.push(['Preço Atual', `R$ ${operation.current_price.toFixed(2)}`, 'Preço atual da ação']);
+            csvRows.push(['Quantidade', operation.quantity, 'Quantidade de ações']);
+
+            if (isCollar) {
+                csvRows.push(['CALL Strike', `R$ ${operation.call_strike || operation.strike_price}`, 'Strike da CALL vendida']);
+                csvRows.push(['PUT Strike', `R$ ${operation.put_strike || operation.strike_price}`, 'Strike da PUT comprada']);
+            } else {
+                csvRows.push(['Strike', `R$ ${operation.strike_price}`, 'Strike das opções']);
+            }
+
+            csvRows.push(['Prêmio CALL', `R$ ${operation.call_premium.toFixed(2)}`, 'Prêmio por ação da CALL']);
+            csvRows.push(['Prêmio PUT', `R$ ${operation.put_premium.toFixed(2)}`, isCollar ? 'Prêmio por ação da PUT' : 'Prêmio por ação da PUT vendida']);
+            csvRows.push(['Vencimento', operation.expiration_date, 'Data de vencimento das opções']);
+            csvRows.push(['Dias até Vencimento', operation.days_to_maturity, 'Dias restantes até o vencimento']);
+
+            // Adicionar métricas calculadas
+            csvRows.push(['Investimento Inicial', `R$ ${document.getElementById('initial-investment')?.textContent || '0,00'}`, 'Investimento líquido inicial']);
+            csvRows.push(['Lucro Máximo', `R$ ${document.getElementById('max-profit')?.textContent || '0,00'}`, 'Lucro máximo possível']);
+            csvRows.push(['Retorno Total', `${document.getElementById('resumo-retorno')?.textContent || '0,00'}%`, 'Retorno total no período']);
+            csvRows.push(['Retorno Mensal', `${document.getElementById('resumo-mensal')?.textContent || '0,00'}%`, 'Retorno mensalizado']);
+            csvRows.push(['MSO', `${document.getElementById('resumo-mso')?.textContent || '0,00'}%`, 'Margem de Segurança Operacional']);
+
+            if (isCoveredStraddle) {
+                csvRows.push(['LFTS11 Quantidade', document.getElementById('display-lfts-quantity')?.textContent || '0', 'Quantidade de cotas de LFTS11']);
+                csvRows.push(['Investimento LFTS11', `R$ ${document.getElementById('display-lfts-investment')?.textContent || '0,00'}`, 'Investimento em garantias']);
+            }
+
+            csvRows.push(['Data Análise', new Date().toLocaleString('pt-BR'), 'Data e hora da análise']);
+
+            // Converter para CSV
+            const csvContent = csvRows.map(row => row.join(';')).join('\n');
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const now = new Date().toISOString().slice(0, 19).replace(/[:]/g, '-');
+            a.href = url;
+            a.download = `operacao_${operation.symbol}_${now}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // Mostrar mensagem de sucesso
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '1060';
+            alertDiv.innerHTML = `
+        <strong>Sucesso!</strong> Dados exportados para CSV.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+            document.body.appendChild(alertDiv);
+
+            // Remover alerta após 3 segundos
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+        // Garantir que o botão tenha z-index adequado
+        document.addEventListener('DOMContentLoaded', function() {
+            // Adicionar CSS para garantir que o botão seja clicável
+            const style = document.createElement('style');
+            style.textContent = `
+        .btn-success {
+            position: relative;
+            z-index: 100;
+        }
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+    `;
+            document.head.appendChild(style);
+
+            // Verificar se o botão está visível e clicável
+            const saveBtn = document.querySelector('button[onclick*="saveOperation"]');
+            if (saveBtn) {
+                saveBtn.style.position = 'relative';
+                saveBtn.style.zIndex = '100';
+            }
+        });
+
 
         // Renderizar gráfico
         function renderPayoffChart() {

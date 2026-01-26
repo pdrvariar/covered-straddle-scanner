@@ -192,7 +192,8 @@ class ScannerController {
 
             if (!empty($jsonData)) {
                 // Decodifica o JSON
-                $operationData = json_decode($jsonData, true);
+                $data = json_decode($jsonData, true);
+                $operationData = isset($data['operation']) ? $data['operation'] : $data;
 
                 if (is_array($operationData)) {
                     try {
