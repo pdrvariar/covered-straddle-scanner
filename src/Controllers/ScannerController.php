@@ -7,6 +7,7 @@ use App\Models\Operation;
 use App\Services\OPLabAPIClient;
 use App\Services\StrategyEngine;
 use App\Services\CoveredStraddleRanker;
+use App\Services\CollarRanker;
 
 class ScannerController {
     private $db;
