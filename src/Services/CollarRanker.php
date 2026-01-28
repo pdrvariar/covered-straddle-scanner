@@ -15,6 +15,7 @@ class CollarRanker {
             return 0;
         });
 
+        //Retorna as operacoes
         return $operacoes;
     }
 }
