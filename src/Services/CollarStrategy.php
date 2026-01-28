@@ -166,6 +166,9 @@ class CollarStrategy implements IOptionStrategy {
                         'guaranteed_profit_percent' => $guaranteedProfitPercent,
                         'minimum_profit_percent' => $menorRentabilidade,
 
+                        // Calcular o profit_percent como a média dos dois cenários para compatibilidade
+                        'profit_percent' => ($profitRisePercent + $profitFallPercent) / 2,
+
                         'annual_profit_percent' => $profitRisePercent * (365 / $daysToMaturity),
                         'quantity' => $this->calculator->getQuantity(),
                         'strategy_type' => 'collar',
@@ -173,6 +176,10 @@ class CollarStrategy implements IOptionStrategy {
                         // Manter compatibilidade
                         'max_loss_percent' => $profitFallPercent,
                         'worst_case_profit_percent' => $profitFallPercent,
+
+                        // Adicionar lucros calculados em reais para exibição
+                        'max_profit' => $metrics['max_profit'] ?? 0,
+                        'min_profit' => $metrics['min_profit'] ?? 0,
                     ];
 
                     $collarData = array_merge($collarData, $metrics);

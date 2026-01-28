@@ -174,6 +174,20 @@ include __DIR__ . '/layout/header.php';
                                         <span class="input-group-text">%</span>
                                     </div>
                                 </div>
+                                <div class="mb-0" id="collar_ranking_criteria_container" style="<?= ($params['strategy_type'] ?? 'covered_straddle') === 'collar' ? '' : 'display: none;' ?>">
+                                    <label for="collar_ranking_criteria" class="form-label fw-semibold">
+                                        <i class="fas fa-sort-amount-down me-2"></i>
+                                        Ordenação Collar
+                                    </label>
+                                    <select class="form-select" id="collar_ranking_criteria" name="collar_ranking_criteria">
+                                        <option value="menor_lucro" <?= ($params['collar_ranking_criteria'] ?? 'menor_lucro') === 'menor_lucro' ? 'selected' : '' ?>>Por Menor Lucro</option>
+                                        <option value="soma_lucros" <?= ($params['collar_ranking_criteria'] ?? 'menor_lucro') === 'soma_lucros' ? 'selected' : '' ?>>Por Soma dos Lucros</option>
+                                    </select>
+                                    <div class="form-text">
+                                        <small><strong>Por Menor Lucro:</strong> Ordena pelo pior cenário (mais conservador)</small><br>
+                                        <small><strong>Por Soma dos Lucros:</strong> Ordena pela média dos cenários (mais otimista)</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -418,8 +432,8 @@ ob_start();
             // Atualizar Lucro Mínimo
             const profitElement = document.getElementById('min_profit');
             if (profitElement) {
-                profitElement.value = defaults.min_profit;
-                updateProfitDisplay(defaults.min_profit);
+            profitElement.value = defaults.min_profit;
+            updateProfitDisplay(defaults.min_profit);
             }
 
             // Atualizar Filtros
@@ -436,8 +450,14 @@ ob_start();
             const recencyInputGroup = document.getElementById('recency_input_group');
             if (recencyInputGroup) recencyInputGroup.style.display = defaults.recency ? 'flex' : 'none';
 
+            // Mostrar/ocultar o campo de ordenação de Collar
+            const collarRankingContainer = document.getElementById('collar_ranking_criteria_container');
+            if (collarRankingContainer) {
+            collarRankingContainer.style.display = strategy === 'collar' ? 'block' : 'none';
+            }
+
             if (!silent) {
-                showTickerFeedback(`Valores padrão para ${strategy} aplicados!`, 'info');
+            showTickerFeedback(`Valores padrão para ${strategy} aplicados!`, 'info');
             }
         }
 
@@ -647,6 +667,14 @@ ob_start();
 
             // Allow form submission
             return true;
+        });
+
+        document.getElementById('strategy_type').addEventListener('change', function() {
+            const strategy = this.value;
+            const collarRankingContainer = document.getElementById('collar_ranking_criteria_container');
+            if (collarRankingContainer) {
+                collarRankingContainer.style.display = strategy === 'collar' ? 'block' : 'none';
+            }
         });
 
         // Initialize form

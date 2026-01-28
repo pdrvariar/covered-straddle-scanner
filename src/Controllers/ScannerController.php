@@ -78,7 +78,8 @@ class ScannerController {
                     'max_recency' => (int)($_POST['max_recency'] ?? 5),
                     'min_profit' => (float)($_POST['min_profit'] ?? 0),
                     'strategy_type' => $_POST['strategy_type'] ?? 'covered_straddle',
-                    'strike_range' => (float)($_POST['strike_range'] ?? 2.0)
+                    'strike_range' => (float)($_POST['strike_range'] ?? 2.0),
+                    'collar_ranking_criteria' => $_POST['collar_ranking_criteria'] ?? 'menor_lucro' // NOVO: critério de ordenação
                 ];
 
                 foreach ($tickers as $ticker) {
@@ -101,8 +102,14 @@ class ScannerController {
 
                 // 1. Ordenação inicial para definir o "ranking do sistema" baseado em rentabilidade
                 usort($results, function($a, $b) {
-                    $rentA = min($a['profit_if_rise_percent'] ?? 0, $a['profit_if_fall_percent'] ?? 0);
-                    $rentB = min($b['profit_if_rise_percent'] ?? 0, $b['profit_if_fall_percent'] ?? 0);
+                    // Para Collar, usar o menor lucro entre os dois cenários
+                    if (($a['strategy_type'] ?? 'covered_straddle') === 'collar') {
+                        $rentA = min($a['profit_if_rise_percent'] ?? 0, $a['profit_if_fall_percent'] ?? 0);
+                        $rentB = min($b['profit_if_rise_percent'] ?? 0, $b['profit_if_fall_percent'] ?? 0);
+                    } else {
+                        $rentA = $a['profit_percent'] ?? 0;
+                        $rentB = $b['profit_percent'] ?? 0;
+                    }
                     return $rentB <=> $rentA;
                 });
 
@@ -111,13 +118,14 @@ class ScannerController {
                     $res['ranking_sistema'] = $index + 1;
                 }
 
-                // 3. Aplicar o algoritmo de ordenação especializado (CoveredStraddleRanker)
+                // 3. Aplicar o algoritmo de ordenação especializado
                 if (($filters['strategy_type'] ?? 'covered_straddle') === 'covered_straddle') {
                     $ranker = new CoveredStraddleRanker();
                     $results = $ranker->ordenarOperacoes($results);
                 } elseif (($filters['strategy_type'] ?? '') === 'collar') {
                     $ranker = new CollarRanker();
-                    $results = $ranker->ordenarOperacoes($results);
+                    // Passar o critério de ordenação selecionado
+                    $results = $ranker->ordenarOperacoes($results, $filters['collar_ranking_criteria'] ?? 'menor_lucro');
                 } else {
                     // Fallback para outras estratégias: manter ordenação por rentabilidade
                 }
@@ -130,7 +138,8 @@ class ScannerController {
                     'total_capital' => $totalCapital,
                     'selic_annual' => $selicAnnual,
                     'strategy_type' => $filters['strategy_type'] ?? 'covered_straddle',
-                    'strike_range' => $filters['strike_range'] ?? 2.0
+                    'strike_range' => $filters['strike_range'] ?? 2.0,
+                    'collar_ranking_criteria' => $filters['collar_ranking_criteria'] ?? 'menor_lucro' // Adicionar o critério aos parâmetros salvos
                 ];
                 $_SESSION['scan_filters'] = $filters;
 
@@ -155,6 +164,7 @@ class ScannerController {
             }
         }
     }
+
     public function details() {
         $operationId = $_GET['id'] ?? null;
         $totalCapital = $_GET['capital'] ?? 50000;
