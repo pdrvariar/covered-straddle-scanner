@@ -22,11 +22,20 @@ $operation['selic_annual'] = floatval($operation['selic_annual'] ?? 0.13);
 $isCollar = $operation['strategy_type'] === 'collar';
 $isCoveredStraddle = !$isCollar;
 
+// Para Collar, calcular lucro máximo, mínimo e soma
 if ($isCollar) {
-    $operation['call_strike'] = floatval($operation['call_strike'] ?? $operation['strike_price']);
-    $operation['put_strike'] = floatval($operation['put_strike'] ?? $operation['strike_price']);
-}
+    $profitIfRisePercent = $operation['profit_if_rise_percent'] ?? 0;
+    $profitIfFallPercent = $operation['profit_if_fall_percent'] ?? 0;
 
+    $lucroMaximoPercent = $profitIfRisePercent;
+    $lucroMinimoPercent = $profitIfFallPercent;
+    $somaLucrosPercent = $lucroMaximoPercent + $lucroMinimoPercent;
+
+    // Calcular valores em reais
+    $lucroMaximoReal = ($lucroMaximoPercent / 100) * $operation['initial_investment'];
+    $lucroMinimoReal = ($lucroMinimoPercent / 100) * $operation['initial_investment'];
+    $somaLucrosReal = $lucroMaximoReal + $lucroMinimoReal;
+}
 // Mapeamento de nomes de estratégia
 $strategyNames = [
         'covered_straddle' => 'Covered Straddle',
@@ -488,15 +497,29 @@ include __DIR__ . '/layout/header.php';
                                 <strong class="text-primary">R$ <span id="initial-investment"><?= number_format($operation['initial_investment'], 2, ',', '.') ?></span></strong>
                             </div>
 
-                            <div class="investment-item d-flex justify-content-between">
-                                <strong>Lucro Máximo:</strong>
-                                <strong class="text-success">R$ <span id="max-profit"><?= number_format($operation['max_profit'], 2, ',', '.') ?></span></strong>
-                            </div>
-
-                            <div class="investment-item d-flex justify-content-between">
-                                <strong>Prejuízo Máximo:</strong>
-                                <strong class="text-danger">R$ <span id="max-loss"><?= number_format($operation['max_loss'] ?? 0, 2, ',', '.') ?></span></strong>
-                            </div>
+                            <?php if ($isCollar): ?>
+                                <div class="investment-item d-flex justify-content-between">
+                                    <strong>Lucro Máximo (Alta):</strong>
+                                    <strong class="text-success">R$ <span id="max-profit-up"><?= number_format($lucroMaximoReal, 2, ',', '.') ?></span> (<span id="max-profit-up-percent"><?= number_format($lucroMaximoPercent, 2, ',', '.') ?></span>%)</strong>
+                                </div>
+                                <div class="investment-item d-flex justify-content-between">
+                                    <strong>Lucro Mínimo (Queda):</strong>
+                                    <strong class="text-warning">R$ <span id="min-profit-down"><?= number_format($lucroMinimoReal, 2, ',', '.') ?></span> (<span id="min-profit-down-percent"><?= number_format($lucroMinimoPercent, 2, ',', '.') ?></span>%)</strong>
+                                </div>
+                                <div class="investment-item d-flex justify-content-between">
+                                    <strong>Soma dos Lucros:</strong>
+                                    <strong class="text-info">R$ <span id="sum-profits"><?= number_format($somaLucrosReal, 2, ',', '.') ?></span> (<span id="sum-profits-percent"><?= number_format($somaLucrosPercent, 2, ',', '.') ?></span>%)</strong>
+                                </div>
+                            <?php else: ?>
+                                <div class="investment-item d-flex justify-content-between">
+                                    <strong>Lucro Máximo:</strong>
+                                    <strong class="text-success">R$ <span id="max-profit"><?= number_format($operation['max_profit'], 2, ',', '.') ?></span></strong>
+                                </div>
+                                <div class="investment-item d-flex justify-content-between">
+                                    <strong>Prejuízo Máximo:</strong>
+                                    <strong class="text-danger">R$ <span id="max-loss"><?= number_format($operation['max_loss'] ?? 0, 2, ',', '.') ?></span></strong>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -675,6 +698,7 @@ include __DIR__ . '/layout/header.php';
     </div>
 
     <script>
+
         // Dados da operação
         const operationData = <?= json_encode($operation) ?>;
         const isCollar = <?= $isCollar ? 'true' : 'false' ?>;
@@ -844,7 +868,14 @@ include __DIR__ . '/layout/header.php';
                     const maxProfit = ((callStrike - currentPrice) * quantity) + netPremiums;
                     document.getElementById('max-profit').textContent = formatBR(maxProfit);
 
-                    const profitPercent = initialInvestment > 0 ? (maxProfit / initialInvestment) * 100 : 0;
+                    // Lucro mínimo (quando S <= putStrike)
+                    const minProfit = ((putStrike - currentPrice) * quantity) + netPremiums;
+
+                    const profitRisePercent = initialInvestment > 0 ? (maxProfit / initialInvestment) * 100 : 0;
+                    const profitFallPercent = initialInvestment > 0 ? (minProfit / initialInvestment) * 100 : 0;
+
+                    // Para exibição no resumo, usar a média dos dois cenários
+                    const profitPercent = (profitRisePercent + profitFallPercent) / 2;
                     document.getElementById('resumo-retorno').textContent = formatBR(profitPercent);
 
                     // Retorno mensal proporcional
@@ -865,6 +896,31 @@ include __DIR__ . '/layout/header.php';
                     // Prejuízo máximo (quando S <= putStrike)
                     const maxLoss = ((putStrike - currentPrice) * quantity) + netPremiums;
                     document.getElementById('max-loss').textContent = formatBR(Math.abs(maxLoss));
+
+                    // Para Collar, calcular lucro máximo, mínimo e soma
+                    const lucroMaximoPercent = profitRisePercent;
+                    const lucroMinimoPercent = profitFallPercent;
+                    const somaLucrosPercent = lucroMaximoPercent + lucroMinimoPercent;
+
+                    const lucroMaximoReal = maxProfit;
+                    const lucroMinimoReal = minProfit;
+                    const somaLucrosReal = lucroMaximoReal + lucroMinimoReal;
+
+                    // Atualizar os novos campos para Collar
+                    if (document.getElementById('max-profit-up')) {
+                        document.getElementById('max-profit-up').textContent = formatBR(lucroMaximoReal);
+                        document.getElementById('max-profit-up-percent').textContent = formatBR(lucroMaximoPercent);
+                    }
+
+                    if (document.getElementById('min-profit-down')) {
+                        document.getElementById('min-profit-down').textContent = formatBR(lucroMinimoReal);
+                        document.getElementById('min-profit-down-percent').textContent = formatBR(lucroMinimoPercent);
+                    }
+
+                    if (document.getElementById('sum-profits')) {
+                        document.getElementById('sum-profits').textContent = formatBR(somaLucrosReal);
+                        document.getElementById('sum-profits-percent').textContent = formatBR(somaLucrosPercent);
+                    }
 
                     // Yield da CALL
                     const callYield = (callPremium * quantity) / stockInvestment * 100;
@@ -1093,12 +1149,31 @@ include __DIR__ . '/layout/header.php';
 
 
         // Renderizar gráfico
+        // Renderizar gráfico
         function renderPayoffChart() {
+            // Verificar se Chart.js está disponível
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js não está carregado!');
+                // Tentar carregar dinamicamente
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+                script.onload = function() {
+                    console.log('Chart.js carregado dinamicamente, tentando renderizar novamente');
+                    renderPayoffChart(); // Chamar novamente após carregar
+                };
+                document.head.appendChild(script);
+                return; // Sai da função até Chart.js carregar
+            }
+
             const canvas = document.getElementById('operationPayoffChart');
-            if (!canvas) return;
+            if (!canvas) {
+                console.error('Canvas não encontrado!');
+                return;
+            }
 
             const ctx = canvas.getContext('2d');
 
+            // Destruir gráfico anterior se existir
             if (window.payoffChart) {
                 window.payoffChart.destroy();
             }
@@ -1108,7 +1183,10 @@ include __DIR__ . '/layout/header.php';
             const putPremium = parseFloat(document.getElementById('input-put-premium').value) || 0;
             const quantity = parseFloat(document.getElementById('input-quantity').value) || 0;
 
-            if (currentPrice <= 0) return;
+            if (currentPrice <= 0) {
+                console.error('Preço atual inválido para renderizar gráfico');
+                return;
+            }
 
             // Definir faixa de preços
             let minPrice, maxPrice;
@@ -1196,8 +1274,38 @@ include __DIR__ . '/layout/header.php';
 
         // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
+            // Verificar se temos todos os elementos necessários
+            const canvas = document.getElementById('operationPayoffChart');
+            if (!canvas) {
+                console.error('Canvas do gráfico não encontrado no DOM!');
+            }
+
             updateCalculations();
+
+            // Forçar renderização do gráfico após um pequeno delay
+            // para garantir que todos os cálculos foram feitos
+            setTimeout(() => {
+                renderPayoffChart();
+            }, 100);
         });
+
+
     </script>
+
+    <style>
+        .lucro-maximo {
+            border-left: 4px solid #28a745;
+            padding-left: 10px;
+        }
+        .lucro-minimo {
+            border-left: 4px solid #ffc107;
+            padding-left: 10px;
+        }
+        .soma-lucros {
+            border-left: 4px solid #17a2b8;
+            padding-left: 10px;
+        }
+    </style>
+
 
 <?php include __DIR__ . '/layout/footer.php'; ?>
