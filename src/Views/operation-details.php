@@ -51,13 +51,11 @@ if ($isCoveredStraddle) {
     $callPremiumTotal = $operation['call_premium'] * $operation['quantity'];
     $putPremiumTotal = $operation['put_premium'] * $operation['quantity'];
 
-    // CORREÇÃO: Calcular monthly_profit_percent se não existir
-    if (!isset($operation['monthly_profit_percent']) || $operation['monthly_profit_percent'] == 0) {
-        if ($operation['days_to_maturity'] > 0) {
-            $operation['monthly_profit_percent'] = ($operation['profit_percent'] / $operation['days_to_maturity']) * 30;
-        } else {
-            $operation['monthly_profit_percent'] = 0;
-        }
+    // CORREÇÃO: Calcular monthly_profit_percent e annualProfit sempre para garantir consistência
+    if ($operation['days_to_maturity'] > 0) {
+        $operation['monthly_profit_percent'] = ($operation['profit_percent'] / $operation['days_to_maturity']) * 30;
+    } else {
+        $operation['monthly_profit_percent'] = 0;
     }
     $annualProfit = $operation['days_to_maturity'] > 0 ? ($operation['profit_percent'] / $operation['days_to_maturity']) * 365 : 0;
 } else {
@@ -68,9 +66,11 @@ if ($isCoveredStraddle) {
     $stockInvestment = $operation['current_price'] * $operation['quantity'];
     $totalGuaranteeNeeded = 0;
 
-    // CORREÇÃO: Para Collar, o lucro mensal é proporcional
-    if (!isset($operation['monthly_profit_percent']) || $operation['monthly_profit_percent'] == 0) {
-        $operation['monthly_profit_percent'] = $operation['days_to_maturity'] > 0 ? ($operation['profit_percent'] / $operation['days_to_maturity']) * 30 : 0;
+    // CORREÇÃO: Para Collar, o lucro mensal deve ser consistente com o profit_percent (média)
+    if ($operation['days_to_maturity'] > 0) {
+        $operation['monthly_profit_percent'] = ($operation['profit_percent'] / $operation['days_to_maturity']) * 30;
+    } else {
+        $operation['monthly_profit_percent'] = 0;
     }
     $annualProfit = $operation['days_to_maturity'] > 0 ? ($operation['profit_percent'] / $operation['days_to_maturity']) * 365 : 0;
 }
