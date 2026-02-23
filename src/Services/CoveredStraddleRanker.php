@@ -502,7 +502,7 @@ class CoveredStraddleRanker
         }
 
         // Alerta 2: MSO insuficiente
-        if ($metricas['mso_percentual'] < 5) {
+        if ($metricas['mso_percentual'] < 3) {
             $alertas[] = "MSO muito baixo (" . round($metricas['mso_percentual'], 2) . "%) - Risco elevado";
         }
 
@@ -513,9 +513,9 @@ class CoveredStraddleRanker
 
         // Alerta 4: CALL muito ITM (strike muito abaixo do preço) - PIOR para venda
         // CORREÇÃO: Invertido! CALL ITM = ruim
-        if (!$metricas['call_otm'] && $metricas['distancia_strike_percentual'] > 10) {
-            $alertas[] = "CALL muito no dinheiro (" . round($metricas['distancia_strike_percentual'], 2) . "%) - Prêmio principalmente intrínseco";
-        }
+        //if (!$metricas['call_otm'] && $metricas['distancia_strike_percentual'] > 10) {
+        //    $alertas[] = "CALL muito no dinheiro (" . round($metricas['distancia_strike_percentual'], 2) . "%) - Prêmio principalmente intrínseco";
+        //}
 
         return $alertas;
     }
@@ -570,7 +570,7 @@ class CoveredStraddleRanker
 
             // Critérios mínimos para operação qualificada:
             // 1. Score mínimo de 60 (classificação "BOA" ou superior)
-            // 2. MSO mínimo de 5%
+            // 2. MSO mínimo de 3%
             // 3. IV Percentile mínimo de 30%
             // 4. Sem classificação "EVITAR"
 
@@ -583,7 +583,7 @@ class CoveredStraddleRanker
             $evitar = strpos($classificacao, 'EVITAR') !== false;
 
             if ($resultado['score'] >= 60 &&
-                $mso >= 5.0 &&
+                $mso >= 3.0 &&
                 $ivPercentile >= 30 &&
                 !$evitar) {
                 $qualificadas[] = $resultado;

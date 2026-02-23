@@ -54,11 +54,12 @@ if ($isCoveredStraddle) {
     // CORREÇÃO: Calcular monthly_profit_percent se não existir
     if (!isset($operation['monthly_profit_percent']) || $operation['monthly_profit_percent'] == 0) {
         if ($operation['days_to_maturity'] > 0) {
-            $operation['monthly_profit_percent'] = $operation['profit_percent'] * sqrt(30 / $operation['days_to_maturity']);
+            $operation['monthly_profit_percent'] = ($operation['profit_percent'] / $operation['days_to_maturity']) * 30;
         } else {
             $operation['monthly_profit_percent'] = 0;
         }
     }
+    $annualProfit = $operation['days_to_maturity'] > 0 ? ($operation['profit_percent'] / $operation['days_to_maturity']) * 365 : 0;
 } else {
     // Cálculo para Collar
     $callPremiumTotal = $operation['call_premium'] * $operation['quantity'];
@@ -69,8 +70,9 @@ if ($isCoveredStraddle) {
 
     // CORREÇÃO: Para Collar, o lucro mensal é proporcional
     if (!isset($operation['monthly_profit_percent']) || $operation['monthly_profit_percent'] == 0) {
-        $operation['monthly_profit_percent'] = $operation['profit_percent'] * (30 / max(1, $operation['days_to_maturity']));
+        $operation['monthly_profit_percent'] = $operation['days_to_maturity'] > 0 ? ($operation['profit_percent'] / $operation['days_to_maturity']) * 30 : 0;
     }
+    $annualProfit = $operation['days_to_maturity'] > 0 ? ($operation['profit_percent'] / $operation['days_to_maturity']) * 365 : 0;
 }
 
 // LFTS11 data (apenas para Covered Straddle)
@@ -233,7 +235,16 @@ include __DIR__ . '/layout/header.php';
                                     <small class="text-muted">Projeção mensal</small>
                                 </div>
                             </div>
-                            <div class="col-md-4 text-center">
+                            <div class="col-md-2 text-center border-end">
+                                <div class="py-2">
+                                    <small class="text-muted d-block text-uppercase mb-1">Anual</small>
+                                    <h2 class="h3 fw-bold text-primary mb-0">
+                                        <span id="resumo-anual"><?= number_format($annualProfit, 2, ',', '.') ?></span>%
+                                    </h2>
+                                    <small class="text-muted">Projeção anual</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2 text-center">
                                 <div class="py-2">
                                     <small class="text-muted d-block text-uppercase mb-1">MSO</small>
                                     <?php
@@ -547,8 +558,8 @@ include __DIR__ . '/layout/header.php';
                                     }
                                     $distanceClass = $distance > 0 ? 'text-success' : 'text-danger';
                                     ?>
-                                    <h4 class="<?= $distanceClass ?> mb-0">
-                                        <?= number_format($distance, 2, ',', '.') ?>%
+                                    <h4 class="<?= $distanceClass ?> mb-0" id="distancia-strike-container">
+                                        <span id="distancia-strike"><?= number_format($distance, 2, ',', '.') ?></span>%
                                     </h4>
                                     <small><?= $isCoveredStraddle ? 'Strike vs Preço' : 'CALL Strike vs Preço' ?></small>
                                 </div>
@@ -588,8 +599,8 @@ include __DIR__ . '/layout/header.php';
                                         $downsideProtection = (($operation['current_price'] - $operation['put_strike']) / $operation['current_price']) * 100;
                                         $protectionClass = $downsideProtection > 0 ? 'text-success' : 'text-danger';
                                         ?>
-                                        <h4 class="<?= $protectionClass ?> mb-0">
-                                            <?= number_format($downsideProtection, 2, ',', '.') ?>%
+                                        <h4 class="<?= $protectionClass ?> mb-0" id="protecao-queda-container">
+                                            <span id="protecao-queda"><?= number_format($downsideProtection, 2, ',', '.') ?></span>%
                                         </h4>
                                         <small>Proteção até o strike PUT</small>
                                     </div>
@@ -600,8 +611,8 @@ include __DIR__ . '/layout/header.php';
                                         $downsideProtection = (($operation['strike_price'] / $operation['current_price']) - 1) * 100;
                                         $protectionClass = $downsideProtection > 0 ? 'text-success' : 'text-danger';
                                         ?>
-                                        <h4 class="<?= $protectionClass ?> mb-0">
-                                            <?= number_format($downsideProtection, 2, ',', '.') ?>%
+                                        <h4 class="<?= $protectionClass ?> mb-0" id="protecao-queda-container-cs">
+                                            <span id="protecao-queda-cs"><?= number_format($downsideProtection, 2, ',', '.') ?></span>%
                                         </h4>
                                         <small>Até o strike</small>
                                     </div>
@@ -773,8 +784,17 @@ include __DIR__ . '/layout/header.php';
                 // Atualizar displays básicos
                 document.getElementById('display-quantity').textContent = formatBR(quantity, 0);
                 document.getElementById('display-stock-investment').textContent = formatBR(currentPrice * quantity);
-                document.getElementById('call-total-revenue').textContent = formatBR(callPremium * quantity);
-                document.getElementById('call-premium-financeira').textContent = formatBR(callPremium * quantity);
+                if (document.getElementById('financeira-stock-investment')) {
+                    document.getElementById('financeira-stock-investment').textContent = formatBR(currentPrice * quantity);
+                }
+                
+                if (document.getElementById('call-total-revenue')) {
+                    document.getElementById('call-total-revenue').textContent = formatBR(callPremium * quantity);
+                }
+                
+                if (document.getElementById('call-premium-financeira')) {
+                    document.getElementById('call-premium-financeira').textContent = formatBR(callPremium * quantity);
+                }
 
                 if (isCoveredStraddle) {
                     const strike = operationData.strike_price;
@@ -815,12 +835,12 @@ include __DIR__ . '/layout/header.php';
                     const profitPercent = initialInvestment > 0 ? (maxProfit / initialInvestment) * 100 : 0;
                     document.getElementById('resumo-retorno').textContent = formatBR(profitPercent);
 
-                    // Retorno mensal proporcional (não-linear para opções)
-                    const monthlyProfitPercent = profitPercent * Math.sqrt(30 / daysToMaturity);
-                    document.getElementById('resumo-mensal').textContent = formatBR(monthlyProfitPercent);
+                    // Retorno mensal e anual linear para consistência (conforme pedido do usuário)
+                    const monthlyProfitPercent = daysToMaturity > 0 ? (profitPercent / daysToMaturity) * 30 : 0;
+                    const annualProfit = daysToMaturity > 0 ? (profitPercent / daysToMaturity) * 365 : 0;
 
-                    // Retorno anualizado
-                    const annualProfit = profitPercent * Math.sqrt(365 / daysToMaturity);
+                    document.getElementById('resumo-mensal').textContent = formatBR(monthlyProfitPercent);
+                    document.getElementById('resumo-anual').textContent = formatBR(annualProfit);
                     document.getElementById('annual-profit').textContent = formatBR(annualProfit);
 
                     // BEP analítico
@@ -844,6 +864,25 @@ include __DIR__ . '/layout/header.php';
 
                     // Distância do strike
                     const strikeDistance = ((strike - currentPrice) / currentPrice) * 100;
+                    if (document.getElementById('distancia-strike')) {
+                        document.getElementById('distancia-strike').textContent = formatBR(strikeDistance);
+                        const distContainer = document.getElementById('distancia-strike-container');
+                        if (distContainer) {
+                            distContainer.classList.remove('text-success', 'text-danger');
+                            distContainer.classList.add(strikeDistance > 0 ? 'text-success' : 'text-danger');
+                        }
+                    }
+
+                    // Proteção de queda
+                    const downsideProtection = ((strike / currentPrice) - 1) * 100;
+                    if (document.getElementById('protecao-queda-cs')) {
+                        document.getElementById('protecao-queda-cs').textContent = formatBR(downsideProtection);
+                        const protContainer = document.getElementById('protecao-queda-container-cs');
+                        if (protContainer) {
+                            protContainer.classList.remove('text-success', 'text-danger');
+                            protContainer.classList.add(downsideProtection > 0 ? 'text-success' : 'text-danger');
+                        }
+                    }
 
                     if (updateTotalInvest) {
                         document.getElementById('input-total-invest').value = Math.round(stockInvestment + lftsInvestment);
@@ -878,12 +917,12 @@ include __DIR__ . '/layout/header.php';
                     const profitPercent = (profitRisePercent + profitFallPercent) / 2;
                     document.getElementById('resumo-retorno').textContent = formatBR(profitPercent);
 
-                    // Retorno mensal proporcional
-                    const monthlyProfitPercent = profitPercent * (30 / daysToMaturity);
+                    // Retorno mensal e anual linear para consistência
+                    const monthlyProfitPercent = daysToMaturity > 0 ? (profitPercent / daysToMaturity) * 30 : 0;
+                    const annualProfit = daysToMaturity > 0 ? (profitPercent / daysToMaturity) * 365 : 0;
+                    
                     document.getElementById('resumo-mensal').textContent = formatBR(monthlyProfitPercent);
-
-                    // Retorno anualizado
-                    const annualProfit = profitPercent * (365 / daysToMaturity);
+                    document.getElementById('resumo-anual').textContent = formatBR(annualProfit);
                     document.getElementById('annual-profit').textContent = formatBR(annualProfit);
 
                     // BEP para Collar
@@ -925,6 +964,28 @@ include __DIR__ . '/layout/header.php';
                     // Yield da CALL
                     const callYield = (callPremium * quantity) / stockInvestment * 100;
                     document.getElementById('premium-yield').textContent = formatBR(callYield);
+
+                    // Distância do strike
+                    const strikeDistance = ((callStrike - currentPrice) / currentPrice) * 100;
+                    if (document.getElementById('distancia-strike')) {
+                        document.getElementById('distancia-strike').textContent = formatBR(strikeDistance);
+                        const distContainer = document.getElementById('distancia-strike-container');
+                        if (distContainer) {
+                            distContainer.classList.remove('text-success', 'text-danger');
+                            distContainer.classList.add(strikeDistance > 0 ? 'text-success' : 'text-danger');
+                        }
+                    }
+
+                    // Proteção de queda (PUT)
+                    const downsideProtection = ((currentPrice - putStrike) / currentPrice) * 100;
+                    if (document.getElementById('protecao-queda')) {
+                        document.getElementById('protecao-queda').textContent = formatBR(downsideProtection);
+                        const protContainer = document.getElementById('protecao-queda-container');
+                        if (protContainer) {
+                            protContainer.classList.remove('text-success', 'text-danger');
+                            protContainer.classList.add(downsideProtection > 0 ? 'text-success' : 'text-danger');
+                        }
+                    }
 
                     if (updateTotalInvest) {
                         document.getElementById('input-total-invest').value = Math.round(stockInvestment);
@@ -982,6 +1043,7 @@ include __DIR__ . '/layout/header.php';
                 max_profit: parseBR('max-profit'),
                 profit_percent: parseBR('resumo-retorno'),
                 monthly_profit_percent: parseBR('resumo-mensal'),
+                annual_profit_percent: parseBR('resumo-anual'),
                 mso: parseBR('resumo-mso')
             };
 
@@ -1081,6 +1143,7 @@ include __DIR__ . '/layout/header.php';
             csvRows.push(['Lucro Máximo', `R$ ${document.getElementById('max-profit')?.textContent || '0,00'}`, 'Lucro máximo possível']);
             csvRows.push(['Retorno Total', `${document.getElementById('resumo-retorno')?.textContent || '0,00'}%`, 'Retorno total no período']);
             csvRows.push(['Retorno Mensal', `${document.getElementById('resumo-mensal')?.textContent || '0,00'}%`, 'Retorno mensalizado']);
+            csvRows.push(['Retorno Anual', `${document.getElementById('resumo-anual')?.textContent || '0,00'}%`, 'Projeção anual']);
             csvRows.push(['MSO', `${document.getElementById('resumo-mso')?.textContent || '0,00'}%`, 'Margem de Segurança Operacional']);
 
             if (isCoveredStraddle) {
