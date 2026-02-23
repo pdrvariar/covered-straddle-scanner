@@ -807,12 +807,24 @@ include __DIR__ . '/layout/header.php';
                     const lftsReturn = lftsInvestment * selicPeriodReturn;
 
                     // Atualizar displays LFTS11
-                    document.getElementById('display-quantity-guarantee').textContent = formatBR(quantity, 0);
-                    document.getElementById('display-guarantee-needed').textContent = formatBR(guaranteeNeeded);
-                    document.getElementById('display-lfts-quantity').textContent = formatBR(lftsQuantity, 0);
-                    document.getElementById('display-lfts-investment').textContent = formatBR(lftsInvestment);
-                    document.getElementById('financeira-lfts-investment').textContent = formatBR(lftsInvestment);
-                    document.getElementById('financeira-lfts-return').textContent = formatBR(lftsReturn);
+                    if (document.getElementById('display-quantity-guarantee')) {
+                        document.getElementById('display-quantity-guarantee').textContent = formatBR(quantity, 0);
+                    }
+                    if (document.getElementById('display-guarantee-needed')) {
+                        document.getElementById('display-guarantee-needed').textContent = formatBR(guaranteeNeeded);
+                    }
+                    if (document.getElementById('display-lfts-quantity')) {
+                        document.getElementById('display-lfts-quantity').textContent = formatBR(lftsQuantity, 0);
+                    }
+                    if (document.getElementById('display-lfts-investment')) {
+                        document.getElementById('display-lfts-investment').textContent = formatBR(lftsInvestment);
+                    }
+                    if (document.getElementById('financeira-lfts-investment')) {
+                        document.getElementById('financeira-lfts-investment').textContent = formatBR(lftsInvestment);
+                    }
+                    if (document.getElementById('financeira-lfts-return')) {
+                        document.getElementById('financeira-lfts-return').textContent = formatBR(lftsReturn);
+                    }
 
                     // Calcular métricas
                     const stockInvestment = currentPrice * quantity;
@@ -820,47 +832,75 @@ include __DIR__ . '/layout/header.php';
                     const putTotalRevenue = putPremium * quantity;
                     const totalPremiums = callTotalRevenue + putTotalRevenue;
 
-                    document.getElementById('put-total-revenue').textContent = formatBR(putTotalRevenue);
-                    document.getElementById('total-premiums-badge').textContent = formatBR(totalPremiums);
-                    document.getElementById('total-premiums-financeira').textContent = formatBR(totalPremiums);
+                    if (document.getElementById('put-total-revenue')) {
+                        document.getElementById('put-total-revenue').textContent = formatBR(putTotalRevenue);
+                    }
+                    if (document.getElementById('total-premiums-badge')) {
+                        document.getElementById('total-premiums-badge').textContent = formatBR(totalPremiums);
+                    }
+                    if (document.getElementById('total-premiums-financeira')) {
+                        document.getElementById('total-premiums-financeira').textContent = formatBR(totalPremiums);
+                    }
 
                     const initialInvestment = stockInvestment + lftsInvestment - totalPremiums;
-                    document.getElementById('initial-investment').textContent = formatBR(initialInvestment);
+                    if (document.getElementById('initial-investment')) {
+                        document.getElementById('initial-investment').textContent = formatBR(initialInvestment);
+                    }
 
                     // Lucro máximo ocorre quando S = strike
                     const maxProfit = ((strike - currentPrice) * quantity) + totalPremiums + lftsReturn;
-                    document.getElementById('max-profit').textContent = formatBR(maxProfit);
+                    if (document.getElementById('max-profit')) {
+                        document.getElementById('max-profit').textContent = formatBR(maxProfit);
+                    }
 
                     // Percentual de retorno
                     const profitPercent = initialInvestment > 0 ? (maxProfit / initialInvestment) * 100 : 0;
-                    document.getElementById('resumo-retorno').textContent = formatBR(profitPercent);
+                    if (document.getElementById('resumo-retorno')) {
+                        document.getElementById('resumo-retorno').textContent = formatBR(profitPercent);
+                    }
 
                     // Retorno mensal e anual linear para consistência (conforme pedido do usuário)
                     const monthlyProfitPercent = daysToMaturity > 0 ? (profitPercent / daysToMaturity) * 30 : 0;
                     const annualProfit = daysToMaturity > 0 ? (profitPercent / daysToMaturity) * 365 : 0;
 
-                    document.getElementById('resumo-mensal').textContent = formatBR(monthlyProfitPercent);
-                    document.getElementById('resumo-anual').textContent = formatBR(annualProfit);
-                    document.getElementById('annual-profit').textContent = formatBR(annualProfit);
+                    if (document.getElementById('resumo-mensal')) {
+                        document.getElementById('resumo-mensal').textContent = formatBR(monthlyProfitPercent);
+                    }
+                    if (document.getElementById('resumo-anual')) {
+                        document.getElementById('resumo-anual').textContent = formatBR(annualProfit);
+                    }
+                    if (document.getElementById('annual-profit')) {
+                        document.getElementById('annual-profit').textContent = formatBR(annualProfit);
+                    }
 
                     // BEP analítico
                     const bep = (currentPrice + strike - (totalPremiums/quantity) - (lftsReturn/quantity)) / 2;
                     const mso = currentPrice > 0 ? ((currentPrice - bep) / currentPrice) * 100 : 0;
 
-                    document.getElementById('resumo-mso').textContent = formatBR(mso);
-                    document.getElementById('indicador-mso').textContent = formatBR(mso);
+                    if (document.getElementById('resumo-mso')) {
+                        document.getElementById('resumo-mso').textContent = formatBR(mso);
+                    }
+                    if (document.getElementById('indicador-mso')) {
+                        document.getElementById('indicador-mso').textContent = formatBR(mso);
+                    }
 
                     // Atualizar BEP display
-                    document.getElementById('breakevens-list').innerHTML =
-                        `<span class="badge bg-info">R$ ${formatBR(bep)}</span>`;
+                    if (document.getElementById('breakevens-list')) {
+                        document.getElementById('breakevens-list').innerHTML =
+                            `<span class="badge bg-info">R$ ${formatBR(bep)}</span>`;
+                    }
 
                     // Prejuízo máximo (quando ação vai a zero)
                     const maxLoss = ((-currentPrice - strike) * quantity) + totalPremiums + lftsReturn;
-                    document.getElementById('max-loss').textContent = formatBR(Math.abs(maxLoss));
+                    if (document.getElementById('max-loss')) {
+                        document.getElementById('max-loss').textContent = formatBR(Math.abs(maxLoss));
+                    }
 
                     // Yield dos prêmios
                     const premiumYield = totalPremiums / (stockInvestment + lftsInvestment) * 100;
-                    document.getElementById('premium-yield').textContent = formatBR(premiumYield);
+                    if (document.getElementById('premium-yield')) {
+                        document.getElementById('premium-yield').textContent = formatBR(premiumYield);
+                    }
 
                     // Distância do strike
                     const strikeDistance = ((strike - currentPrice) / currentPrice) * 100;
@@ -884,7 +924,7 @@ include __DIR__ . '/layout/header.php';
                         }
                     }
 
-                    if (updateTotalInvest) {
+                    if (updateTotalInvest && document.getElementById('input-total-invest')) {
                         document.getElementById('input-total-invest').value = Math.round(stockInvestment + lftsInvestment);
                     }
 
@@ -892,20 +932,32 @@ include __DIR__ . '/layout/header.php';
                     const callStrike = operationData.call_strike;
                     const putStrike = operationData.put_strike;
 
-                    document.getElementById('put-total-cost').textContent = formatBR(putPremium * quantity);
-                    document.getElementById('put-premium-financeira').textContent = formatBR(putPremium * quantity);
+                    if (document.getElementById('put-total-cost')) {
+                        document.getElementById('put-total-cost').textContent = formatBR(putPremium * quantity);
+                    }
+                    if (document.getElementById('put-premium-financeira')) {
+                        document.getElementById('put-premium-financeira').textContent = formatBR(putPremium * quantity);
+                    }
 
                     const netPremiums = (callPremium - putPremium) * quantity;
-                    document.getElementById('total-premiums-badge').textContent = formatBR(netPremiums);
-                    document.getElementById('net-premiums-financeira').textContent = formatBR(Math.abs(netPremiums));
+                    if (document.getElementById('total-premiums-badge')) {
+                        document.getElementById('total-premiums-badge').textContent = formatBR(netPremiums);
+                    }
+                    if (document.getElementById('net-premiums-financeira')) {
+                        document.getElementById('net-premiums-financeira').textContent = formatBR(Math.abs(netPremiums));
+                    }
 
                     const stockInvestment = currentPrice * quantity;
                     const initialInvestment = stockInvestment + (putPremium * quantity) - (callPremium * quantity);
-                    document.getElementById('initial-investment').textContent = formatBR(initialInvestment);
+                    if (document.getElementById('initial-investment')) {
+                        document.getElementById('initial-investment').textContent = formatBR(initialInvestment);
+                    }
 
                     // Lucro máximo (quando S >= callStrike)
                     const maxProfit = ((callStrike - currentPrice) * quantity) + netPremiums;
-                    document.getElementById('max-profit').textContent = formatBR(maxProfit);
+                    if (document.getElementById('max-profit')) {
+                        document.getElementById('max-profit').textContent = formatBR(maxProfit);
+                    }
 
                     // Lucro mínimo (quando S <= putStrike)
                     const minProfit = ((putStrike - currentPrice) * quantity) + netPremiums;
@@ -915,26 +967,40 @@ include __DIR__ . '/layout/header.php';
 
                     // Para exibição no resumo, usar a média dos dois cenários
                     const profitPercent = (profitRisePercent + profitFallPercent) / 2;
-                    document.getElementById('resumo-retorno').textContent = formatBR(profitPercent);
+                    if (document.getElementById('resumo-retorno')) {
+                        document.getElementById('resumo-retorno').textContent = formatBR(profitPercent);
+                    }
 
                     // Retorno mensal e anual linear para consistência
                     const monthlyProfitPercent = daysToMaturity > 0 ? (profitPercent / daysToMaturity) * 30 : 0;
                     const annualProfit = daysToMaturity > 0 ? (profitPercent / daysToMaturity) * 365 : 0;
-                    
-                    document.getElementById('resumo-mensal').textContent = formatBR(monthlyProfitPercent);
-                    document.getElementById('resumo-anual').textContent = formatBR(annualProfit);
-                    document.getElementById('annual-profit').textContent = formatBR(annualProfit);
+
+                    if (document.getElementById('resumo-mensal')) {
+                        document.getElementById('resumo-mensal').textContent = formatBR(monthlyProfitPercent);
+                    }
+                    if (document.getElementById('resumo-anual')) {
+                        document.getElementById('resumo-anual').textContent = formatBR(annualProfit);
+                    }
+                    if (document.getElementById('annual-profit')) {
+                        document.getElementById('annual-profit').textContent = formatBR(annualProfit);
+                    }
 
                     // BEP para Collar
                     const bep = currentPrice - callPremium + putPremium;
                     const mso = currentPrice > 0 ? ((currentPrice - bep) / currentPrice) * 100 : 0;
 
-                    document.getElementById('resumo-mso').textContent = formatBR(mso);
-                    document.getElementById('indicador-mso').textContent = formatBR(mso);
+                    if (document.getElementById('resumo-mso')) {
+                        document.getElementById('resumo-mso').textContent = formatBR(mso);
+                    }
+                    if (document.getElementById('indicador-mso')) {
+                        document.getElementById('indicador-mso').textContent = formatBR(mso);
+                    }
 
                     // Prejuízo máximo (quando S <= putStrike)
                     const maxLoss = ((putStrike - currentPrice) * quantity) + netPremiums;
-                    document.getElementById('max-loss').textContent = formatBR(Math.abs(maxLoss));
+                    if (document.getElementById('max-loss')) {
+                        document.getElementById('max-loss').textContent = formatBR(Math.abs(maxLoss));
+                    }
 
                     // Para Collar, calcular lucro máximo, mínimo e soma
                     const lucroMaximoPercent = profitRisePercent;
@@ -963,7 +1029,9 @@ include __DIR__ . '/layout/header.php';
 
                     // Yield da CALL
                     const callYield = (callPremium * quantity) / stockInvestment * 100;
-                    document.getElementById('premium-yield').textContent = formatBR(callYield);
+                    if (document.getElementById('premium-yield')) {
+                        document.getElementById('premium-yield').textContent = formatBR(callYield);
+                    }
 
                     // Distância do strike
                     const strikeDistance = ((callStrike - currentPrice) / currentPrice) * 100;
@@ -987,7 +1055,7 @@ include __DIR__ . '/layout/header.php';
                         }
                     }
 
-                    if (updateTotalInvest) {
+                    if (updateTotalInvest && document.getElementById('input-total-invest')) {
                         document.getElementById('input-total-invest').value = Math.round(stockInvestment);
                     }
                 }
