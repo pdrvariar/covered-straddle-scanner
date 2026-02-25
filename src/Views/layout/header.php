@@ -1103,7 +1103,7 @@ if (!isset($page_title)) {
                                 <small class="text-white-50">Trader Premium</small>
                             </li>
                             <li>
-                                <a class="dropdown-item py-2" href="#">
+                                <a class="dropdown-item py-2" href="/?action=profile">
                                     <i class="fas fa-user text-primary me-3"></i>
                                     Meu Perfil
                                 </a>

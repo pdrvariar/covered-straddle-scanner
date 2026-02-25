@@ -66,6 +66,14 @@ if (strpos($path, '/api/') === 0) {
         case 'operations/clone':
             $api->cloneOperation();
             break;
+        case 'profile/update':
+            $profileController = new \App\Controllers\ProfileController();
+            $profileController->updateProfile();
+            break;
+        case 'profile/password':
+            $profileController = new \App\Controllers\ProfileController();
+            $profileController->updatePassword();
+            break;
         default:
             if (isset($params['id'])) {
                 $api->getOperation($params['id']);
@@ -96,6 +104,11 @@ switch ($action) {
     case 'logout':
         $controller = new \App\Controllers\AuthController();
         $controller->logout();
+        break;
+
+    case 'profile':
+        $controller = new \App\Controllers\ProfileController();
+        $controller->index();
         break;
 
     case 'scan':
