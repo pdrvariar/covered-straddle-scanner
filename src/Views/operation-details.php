@@ -1241,8 +1241,14 @@ include __DIR__ . '/layout/header.php';
 
             // Ajustes específicos por estratégia
             if (isCollar) {
+                operationToSave.strike_price = operationData.strike_price || operationData.call_strike || operationData.put_strike;
                 operationToSave.call_strike = operationData.call_strike || operationData.strike_price;
                 operationToSave.put_strike = operationData.put_strike || operationData.strike_price;
+            } else {
+                // Para Covered Straddle, garantir que strike_price esteja definido
+                operationToSave.strike_price = operationData.strike_price || operationData.call_strike || operationData.put_strike;
+                operationToSave.call_strike = operationData.strike_price || operationData.call_strike;
+                operationToSave.put_strike = operationData.strike_price || operationData.put_strike;
             }
 
             if (isCoveredStraddle) {
