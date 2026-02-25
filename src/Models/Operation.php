@@ -359,5 +359,34 @@ class Operation
             return false;
         }
     }
+
+    // Método estático para clonar operação
+    public static function clone($id)
+    {
+        try {
+            $db = self::getConnection();
+
+            // Buscar operação original
+            $operation = self::getById($id);
+
+            if (!$operation) {
+                throw new Exception('Operação original não encontrada');
+            }
+
+            // Remover o ID para criar uma nova operação
+            unset($operation['id']);
+            unset($operation['created_at']);
+            unset($operation['updated_at']);
+
+            // Salvar como nova operação
+            $newOperationId = self::save($operation);
+
+            return $newOperationId;
+
+        } catch (Exception $e) {
+            error_log("Error cloning operation: " . $e->getMessage());
+            throw $e;
+        }
+    }
 }
 

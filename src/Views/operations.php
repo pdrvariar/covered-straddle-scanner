@@ -186,11 +186,18 @@ include __DIR__ . '/layout/header.php';
                                         <td><?= date('d/m/Y H:i', strtotime($op['created_at'])) ?></td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
-                                                <a href="/?action=details&id=<?= $op['id'] ?>"
-                                                   class="btn btn-outline-primary"
-                                                   title="Ver detalhes">
+                                                <button type="button"
+                                                        class="btn btn-outline-primary"
+                                                        onclick="window.location.href='/?action=details&id=<?= $op['id'] ?>'"
+                                                        title="Ver detalhes">
                                                     <i class="fas fa-eye"></i>
-                                                </a>
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-outline-success"
+                                                        onclick="cloneOperation(<?= $op['id'] ?>)"
+                                                        title="Clonar operação">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
                                                 <button type="button"
                                                         class="btn btn-outline-danger"
                                                         onclick="deleteOperation(<?= $op['id'] ?>)"
@@ -274,6 +281,38 @@ ob_start();
                 console.error('Erro:', error);
                 if (typeof showError === 'function') showError('Erro ao excluir operação.');
                 else alert('Erro ao excluir operação.');
+            });
+    }
+
+    // Função para clonar operação
+    function cloneOperation(id) {
+        if (typeof showLoading === 'function') showLoading('Clonando operação...');
+
+        fetch('/api/operations/clone', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ operation_id: id })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (typeof hideLoading === 'function') hideLoading();
+                if (data.success) {
+                    if (typeof showSuccess === 'function') showSuccess('Operação clonada com sucesso!');
+                    else alert('Operação clonada com sucesso!');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    const errorMsg = data.message || data.error || 'Erro desconhecido';
+                    if (typeof showError === 'function') showError('Erro ao clonar operação: ' + errorMsg);
+                    else alert('Erro ao clonar operação: ' + errorMsg);
+                }
+            })
+            .catch(error => {
+                if (typeof hideLoading === 'function') hideLoading();
+                console.error('Erro:', error);
+                if (typeof showError === 'function') showError('Erro ao clonar operação.');
+                else alert('Erro ao clonar operação.');
             });
     }
 

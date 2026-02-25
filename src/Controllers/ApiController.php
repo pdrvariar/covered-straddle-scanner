@@ -195,5 +195,39 @@ class ApiController {
             echo json_encode(['success' => false, 'message' => 'Método não permitido']);
         }
     }
+
+    public function cloneOperation()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            if (!isset($data['operation_id'])) {
+                echo json_encode(['success' => false, 'message' => 'ID da operação não fornecido']);
+                return;
+            }
+
+            try {
+                $operationId = $data['operation_id'];
+                $newOperationId = Operation::clone($operationId);
+
+                if ($newOperationId) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Operação clonada com sucesso',
+                        'new_operation_id' => $newOperationId
+                    ]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Não foi possível clonar a operação. Verifique se ela existe e pertence ao seu usuário.']);
+                }
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => 'Erro ao clonar operação: ' . $e->getMessage()]);
+            }
+        } else {
+            header('HTTP/1.1 405 Method Not Allowed');
+            echo json_encode(['success' => false, 'message' => 'Método não permitido']);
+        }
+    }
 }
 ?>

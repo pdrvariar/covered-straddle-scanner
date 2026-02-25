@@ -41,23 +41,60 @@
 
         <!-- Market Status -->
         <div class="px-3">
-            <h6 class="sidebar-heading mb-3 text-muted d-flex align-items-center">
+            <h6 class="sidebar-heading mb-4 text-muted d-flex align-items-center">
                 <i class="fas fa-chart-line me-2"></i>
                 <span class="fs-6 fw-bold">MERCADO B3</span>
             </h6>
-            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-gradient rounded-3 hover-lift transition-all" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-                <div>
-                    <small class="text-muted fw-bold d-block">SELIC (Anual)</small>
-                    <small class="text-muted">Taxa básica</small>
-                    <small class="text-muted fw-bold d-block mt-2">SELIC (Mensal) Bruta</small>
-                    <small class="text-muted">Taxa equivalente</small>
-                    <small class="text-muted fw-bold d-block mt-2">SELIC (Mensal) Líquida</small>
-                    <small class="text-muted">Após IR (22,5%)</small>
+
+            <!-- SELIC Anual -->
+            <div class="mb-4 p-3 rounded-3" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <small class="text-muted fw-bold d-block mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">SELIC</small>
+                        <small class="text-muted d-block" style="font-size: 0.8rem;">(Anual)</small>
+                        <small class="text-muted d-block mt-2" style="font-size: 0.75rem; opacity: 0.8;">Taxa básica</small>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 1rem; padding: 0.5rem 0.75rem;">
+                            <?= $stats['selic'] ?? '13,75' ?>%
+                        </span>
+                    </div>
                 </div>
-                <div class="text-end">
-                    <div><span class="badge bg-success-subtle text-success border border-success-subtle fs-6"><?= $stats['selic'] ?? '13,75' ?>%</span></div>
-                    <div class="mt-2"><span class="badge bg-info-subtle text-info border border-info-subtle fs-6"><?= $stats['selic_monthly_gross'] ?? '1,15' ?>%</span></div>
-                    <div class="mt-2"><span class="badge bg-warning-subtle text-warning border border-warning-subtle fs-6"><?= $stats['selic_monthly_net'] ?? '0,89' ?>%</span></div>
+            </div>
+
+            <!-- SELIC Mensal Bruta -->
+            <div class="mb-4 p-3 rounded-3" style="background: linear-gradient(135deg, #e8f4fd 0%, #d4e9f7 100%);">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <small class="text-muted fw-bold d-block mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">SELIC</small>
+                        <small class="text-muted d-block" style="font-size: 0.8rem;">(Mensal)</small>
+                        <small class="text-muted d-block" style="font-size: 0.8rem;">Bruta</small>
+                        <small class="text-muted d-block mt-2" style="font-size: 0.75rem; opacity: 0.8;">Taxa</small>
+                        <small class="text-muted d-block" style="font-size: 0.75rem; opacity: 0.8;">equivalente</small>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-info-subtle text-info border border-info-subtle" style="font-size: 1rem; padding: 0.5rem 0.75rem;">
+                            <?= $stats['selic_monthly_gross'] ?? '1,15' ?>%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SELIC Mensal Líquida -->
+            <div class="p-3 rounded-3" style="background: linear-gradient(135deg, #fff9e6 0%, #fff3cc 100%);">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <small class="text-muted fw-bold d-block mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">SELIC</small>
+                        <small class="text-muted d-block" style="font-size: 0.8rem;">(Mensal)</small>
+                        <small class="text-muted d-block" style="font-size: 0.8rem;">Líquida</small>
+                        <small class="text-muted d-block mt-2" style="font-size: 0.75rem; opacity: 0.8;">Após IR</small>
+                        <small class="text-muted d-block" style="font-size: 0.75rem; opacity: 0.8;">(22,5%)</small>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size: 1rem; padding: 0.5rem 0.75rem;">
+                            <?= $stats['selic_monthly_net'] ?? '0,89' ?>%
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
