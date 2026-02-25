@@ -200,7 +200,7 @@ include __DIR__ . '/layout/header.php';
                                             <div class="input-group input-group-sm">
                                                 <input type="number" step="100" class="form-control text-center fw-bold"
                                                        id="input-quantity" value="<?= $operation['quantity'] ?>"
-                                                       oninput="updateCalculations()">
+                                                       oninput="updateCalculations(); syncQuantityToCard()">
                                                 <span class="input-group-text p-1" style="font-size: 0.7rem;">Ações</span>
                                             </div>
                                         </div>
@@ -278,7 +278,11 @@ include __DIR__ . '/layout/header.php';
                     <div class="card-body">
                         <div class="mb-3">
                             <small class="text-muted d-block text-uppercase small fw-bold">Ação</small>
-                            <h4 class="mb-0"><?= htmlspecialchars($operation['symbol']) ?></h4>
+                            <div class="input-group input-group-sm mt-1" style="max-width: 150px;">
+                                <input type="text" class="form-control fw-bold fs-5"
+                                       id="input-symbol" value="<?= htmlspecialchars($operation['symbol']) ?>"
+                                       oninput="updateSymbolDisplay()">
+                            </div>
                         </div>
                         <div class="mb-3">
                             <small class="text-muted d-block text-uppercase small fw-bold">Preço por Ação</small>
@@ -291,9 +295,12 @@ include __DIR__ . '/layout/header.php';
                         </div>
                         <div class="mb-3">
                             <small class="text-muted d-block text-uppercase small fw-bold">Quantidade Total</small>
-                            <p class="mb-0">
-                                <strong id="display-quantity"><?= number_format($operation['quantity'], 0, ',', '.') ?></strong> ações
-                            </p>
+                            <div class="input-group input-group-sm mt-1" style="max-width: 180px;">
+                                <input type="number" step="100" class="form-control fw-bold"
+                                       id="input-quantity-card" value="<?= $operation['quantity'] ?>"
+                                       oninput="syncQuantityFromCard()">
+                                <span class="input-group-text p-1" style="font-size: 0.7rem;">ações</span>
+                            </div>
                         </div>
                         <div class="p-3 bg-light rounded border">
                             <small class="text-muted d-block text-uppercase small fw-bold">Investimento em Ações</small>
@@ -319,9 +326,11 @@ include __DIR__ . '/layout/header.php';
                         <!-- CALL -->
                         <div class="mb-3">
                             <small class="text-muted d-block">CALL <?= $isCoveredStraddle ? 'Vendida' : 'Vendida' ?></small>
-                            <p class="mb-1">
-                                <strong><?= htmlspecialchars($operation['call_symbol'] ?? 'N/A') ?></strong>
-                            </p>
+                            <div class="input-group input-group-sm mt-1" style="max-width: 200px;">
+                                <input type="text" class="form-control fw-bold"
+                                       id="input-call-symbol" value="<?= htmlspecialchars($operation['call_symbol'] ?? '') ?>"
+                                       placeholder="Ticker CALL">
+                            </div>
                             <div class="row align-items-center">
                                 <div class="col-7">
                                     <div class="input-group input-group-sm">
@@ -347,9 +356,11 @@ include __DIR__ . '/layout/header.php';
                         <!-- PUT -->
                         <div class="mb-3">
                             <small class="text-muted d-block">PUT <?= $isCoveredStraddle ? 'Vendida' : 'Comprada' ?></small>
-                            <p class="mb-1">
-                                <strong><?= htmlspecialchars($operation['put_symbol'] ?? 'N/A') ?></strong>
-                            </p>
+                            <div class="input-group input-group-sm mt-1" style="max-width: 200px;">
+                                <input type="text" class="form-control fw-bold"
+                                       id="input-put-symbol" value="<?= htmlspecialchars($operation['put_symbol'] ?? '') ?>"
+                                       placeholder="Ticker PUT">
+                            </div>
                             <div class="row align-items-center">
                                 <div class="col-7">
                                     <div class="input-group input-group-sm">
@@ -417,9 +428,12 @@ include __DIR__ . '/layout/header.php';
 
                             <div class="mb-3">
                                 <small class="text-muted d-block">Preço por Cota</small>
-                                <p class="mb-0">
-                                    <strong>R$ <?= number_format($lfts11Data['price'], 2, ',', '.') ?></strong>
-                                </p>
+                                <div class="input-group input-group-sm mt-1" style="max-width: 180px;">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" step="0.01" class="form-control fw-bold"
+                                           id="input-lfts11-price" value="<?= $lfts11Data['price'] ?>"
+                                           oninput="updateCalculations()">
+                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -434,9 +448,12 @@ include __DIR__ . '/layout/header.php';
 
                             <div class="mb-3">
                                 <small class="text-muted d-block">Cotas de LFTS11 Necessárias</small>
-                                <p class="mb-0">
-                                    <strong id="display-lfts-quantity"><?= number_format($operation['lfts11_quantity'], 0, ',', '.') ?></strong> cotas
-                                </p>
+                                <div class="input-group input-group-sm mt-1" style="max-width: 180px;">
+                                    <input type="number" step="1" class="form-control fw-bold"
+                                           id="input-lfts11-quantity" value="<?= $operation['lfts11_quantity'] ?>"
+                                           oninput="updateLfts11FromQuantity()">
+                                    <span class="input-group-text p-1" style="font-size: 0.7rem;">cotas</span>
+                                </div>
                             </div>
 
                             <div class="p-3 bg-light rounded">
@@ -714,7 +731,67 @@ include __DIR__ . '/layout/header.php';
         const operationData = <?= json_encode($operation) ?>;
         const isCollar = <?= $isCollar ? 'true' : 'false' ?>;
         const isCoveredStraddle = <?= $isCoveredStraddle ? 'true' : 'false' ?>;
-        const lfts11Price = <?= $isCoveredStraddle ? $lfts11Data['price'] : 0 ?>;
+        const lfts11PriceDefault = <?= $isCoveredStraddle ? $lfts11Data['price'] : 0 ?>;
+
+        // Helper: get current LFTS11 price from input or default
+        function getLfts11Price() {
+            const input = document.getElementById('input-lfts11-price');
+            return input ? (parseFloat(input.value) || lfts11PriceDefault) : lfts11PriceDefault;
+        }
+
+        // Sync symbol display in header
+        function updateSymbolDisplay() {
+            const symbolInput = document.getElementById('input-symbol');
+            if (symbolInput) {
+                const hiddenSymbol = document.getElementById('operation-symbol');
+                if (hiddenSymbol) hiddenSymbol.value = symbolInput.value;
+            }
+        }
+
+        // Sync quantity from card input to summary input
+        function syncQuantityFromCard() {
+            const cardQty = document.getElementById('input-quantity-card');
+            const summaryQty = document.getElementById('input-quantity');
+            if (cardQty && summaryQty) {
+                summaryQty.value = cardQty.value;
+                updateCalculations();
+            }
+        }
+
+        // Sync quantity from summary input to card input
+        function syncQuantityToCard() {
+            const cardQty = document.getElementById('input-quantity-card');
+            const summaryQty = document.getElementById('input-quantity');
+            if (cardQty && summaryQty) {
+                cardQty.value = summaryQty.value;
+            }
+        }
+
+        // Update LFTS11 investment when quantity is manually edited
+        function updateLfts11FromQuantity() {
+            const lftsQtyInput = document.getElementById('input-lfts11-quantity');
+            const lftsPrice = getLfts11Price();
+            if (lftsQtyInput) {
+                const qty = parseInt(lftsQtyInput.value) || 0;
+                const investment = qty * lftsPrice;
+                if (document.getElementById('display-lfts-investment')) {
+                    document.getElementById('display-lfts-investment').textContent = formatBR(investment);
+                }
+                if (document.getElementById('financeira-lfts-investment')) {
+                    document.getElementById('financeira-lfts-investment').textContent = formatBR(investment);
+                }
+                // Recalculate return
+                const daysToMaturity = operationData.days_to_maturity || 30;
+                const selicAnnual = operationData.selic_annual || 0.13;
+                const selicPeriodReturn = selicAnnual * (daysToMaturity / 365);
+                const lftsReturn = investment * selicPeriodReturn;
+                if (document.getElementById('financeira-lfts-return')) {
+                    document.getElementById('financeira-lfts-return').textContent = formatBR(lftsReturn);
+                }
+                // Recalculate all
+                updateCalculations();
+            }
+        }
 
         // Formatação
         function formatBR(val, decimals = 2) {
@@ -753,6 +830,7 @@ include __DIR__ . '/layout/header.php';
         function updateQuantityFromTotal() {
             const totalInvest = parseFloat(document.getElementById('input-total-invest').value) || 0;
             const currentPrice = parseFloat(document.getElementById('input-current-price').value) || 0;
+            const lfts11Price = getLfts11Price();
 
             if (currentPrice > 0) {
                 let quantity;
@@ -767,6 +845,7 @@ include __DIR__ . '/layout/header.php';
 
                 quantity = Math.max(100, quantity);
                 document.getElementById('input-quantity').value = quantity;
+                syncQuantityToCard();
                 updateCalculations(false);
             }
         }
@@ -780,9 +859,12 @@ include __DIR__ . '/layout/header.php';
                 const quantity = parseFloat(document.getElementById('input-quantity').value) || 0;
                 const daysToMaturity = operationData.days_to_maturity || 30;
                 const selicAnnual = operationData.selic_annual || 0.13;
+                const lfts11Price = getLfts11Price();
+
+                // Sync quantity to card input
+                syncQuantityToCard();
 
                 // Atualizar displays básicos
-                document.getElementById('display-quantity').textContent = formatBR(quantity, 0);
                 document.getElementById('display-stock-investment').textContent = formatBR(currentPrice * quantity);
                 if (document.getElementById('financeira-stock-investment')) {
                     document.getElementById('financeira-stock-investment').textContent = formatBR(currentPrice * quantity);
@@ -813,8 +895,9 @@ include __DIR__ . '/layout/header.php';
                     if (document.getElementById('display-guarantee-needed')) {
                         document.getElementById('display-guarantee-needed').textContent = formatBR(guaranteeNeeded);
                     }
-                    if (document.getElementById('display-lfts-quantity')) {
-                        document.getElementById('display-lfts-quantity').textContent = formatBR(lftsQuantity, 0);
+                    // Update the editable LFTS11 quantity input
+                    if (document.getElementById('input-lfts11-quantity')) {
+                        document.getElementById('input-lfts11-quantity').value = lftsQuantity;
                     }
                     if (document.getElementById('display-lfts-investment')) {
                         document.getElementById('display-lfts-investment').textContent = formatBR(lftsInvestment);
@@ -1090,6 +1173,11 @@ include __DIR__ . '/layout/header.php';
             const putPremium = parseFloat(document.getElementById('input-put-premium').value) || 0;
             const quantity = parseFloat(document.getElementById('input-quantity').value) || 0;
 
+            // Novos campos editáveis
+            const symbol = document.getElementById('input-symbol')?.value?.trim() || operationData.symbol;
+            const callSymbol = document.getElementById('input-call-symbol')?.value?.trim() || operationData.call_symbol;
+            const putSymbol = document.getElementById('input-put-symbol')?.value?.trim() || operationData.put_symbol;
+
             // 3. Helper para converter strings formatadas em PT-BR ("1.250,00") para Float (1250.00)
             const parseBR = (id) => {
                 const el = document.getElementById(id);
@@ -1100,10 +1188,13 @@ include __DIR__ . '/layout/header.php';
             // 4. Montagem do objeto de operação para o backend
             const operationToSave = {
                 ...operationData, // Mantém os dados originais (vencimento, strikes originais, etc)
+                symbol: symbol,
                 current_price: currentPrice,
                 call_premium: callPremium,
                 put_premium: putPremium,
                 quantity: quantity,
+                call_symbol: callSymbol,
+                put_symbol: putSymbol,
                 strategy_type: isCollar ? 'collar' : 'covered_straddle',
 
                 // Captura métricas calculadas na tela (formatadas para float)
@@ -1122,8 +1213,8 @@ include __DIR__ . '/layout/header.php';
             }
 
             if (isCoveredStraddle) {
-                operationToSave.lfts11_price = lfts11Price;
-                operationToSave.lfts11_quantity = parseInt(document.getElementById('display-lfts-quantity')?.textContent.replace(/\./g, '') || 0);
+                operationToSave.lfts11_price = parseFloat(document.getElementById('input-lfts11-price')?.value) || lfts11PriceDefault;
+                operationToSave.lfts11_quantity = parseInt(document.getElementById('input-lfts11-quantity')?.value) || 0;
                 operationToSave.lfts11_investment = parseBR('display-lfts-investment');
                 operationToSave.lfts11_return = parseBR('financeira-lfts-return');
             }
