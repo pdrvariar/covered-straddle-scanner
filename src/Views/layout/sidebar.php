@@ -49,8 +49,16 @@
                 <div>
                     <small class="text-muted fw-bold d-block">SELIC (Anual)</small>
                     <small class="text-muted">Taxa básica</small>
+                    <small class="text-muted fw-bold d-block mt-2">SELIC (Mensal) Bruta</small>
+                    <small class="text-muted">Taxa equivalente</small>
+                    <small class="text-muted fw-bold d-block mt-2">SELIC (Mensal) Líquida</small>
+                    <small class="text-muted">Após IR (22,5%)</small>
                 </div>
-                <span class="badge bg-success-subtle text-success border border-success-subtle fs-6"><?= $stats['selic'] ?? '13,75' ?>%</span>
+                <div class="text-end">
+                    <div><span class="badge bg-success-subtle text-success border border-success-subtle fs-6"><?= $stats['selic'] ?? '13,75' ?>%</span></div>
+                    <div class="mt-2"><span class="badge bg-info-subtle text-info border border-info-subtle fs-6"><?= $stats['selic_monthly_gross'] ?? '1,15' ?>%</span></div>
+                    <div class="mt-2"><span class="badge bg-warning-subtle text-warning border border-warning-subtle fs-6"><?= $stats['selic_monthly_net'] ?? '0,89' ?>%</span></div>
+                </div>
             </div>
         </div>
 

@@ -102,6 +102,26 @@ class Operation
                 $stats['selic'] = number_format((float)$_SESSION['selic_annual'] * 100, 2, ',', '.');
             }
 
+            // Adicionar SELIC mensal bruta e líquida se estiverem em sessão
+            if (isset($_SESSION['selic_monthly_gross'])) {
+                $stats['selic_monthly_gross'] = number_format((float)$_SESSION['selic_monthly_gross'] * 100, 2, ',', '.');
+            } else {
+                // fallback com juros compostos: (1 + anual)^(1/12) - 1
+                $annualDecimal = (float)str_replace(['.', ','], ['', '.'], $stats['selic'] ?? '13,75') / 100;
+                $grossDecimal = pow(1 + $annualDecimal, 1.0 / 12.0) - 1;
+                $stats['selic_monthly_gross'] = number_format($grossDecimal * 100, 2, ',', '.');
+            }
+
+            if (isset($_SESSION['selic_monthly_net'])) {
+                $stats['selic_monthly_net'] = number_format((float)$_SESSION['selic_monthly_net'] * 100, 2, ',', '.');
+            } else {
+                // fallback com juros compostos e IR 22.5%
+                $annualDecimal = (float)str_replace(['.', ','], ['', '.'], $stats['selic'] ?? '13,75') / 100;
+                $grossDecimal = pow(1 + $annualDecimal, 1.0 / 12.0) - 1;
+                $netDecimal = $grossDecimal * 0.775;
+                $stats['selic_monthly_net'] = number_format($netDecimal * 100, 2, ',', '.');
+            }
+
         } catch (Exception $e) {
             // Log error but don't crash
             error_log("Error getting stats: " . $e->getMessage());

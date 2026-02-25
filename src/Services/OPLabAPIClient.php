@@ -138,6 +138,14 @@ class OPLabAPIClient {
                 // Salvar em sessão para uso posterior
                 $_SESSION[$cacheKey] = $rate;
                 $_SESSION[$cacheTimeKey] = time();
+
+                // Calcular SELIC mensal bruta (juros compostos) e líquida (IR 22.5%)
+                $monthlyGross = pow(1 + $rate, 1.0 / 12.0) - 1; // taxa equivalente mensal
+                $monthlyNet = $monthlyGross * 0.775; // aplica 22.5% de IR
+
+                $_SESSION['selic_monthly_gross'] = $monthlyGross;
+                $_SESSION['selic_monthly_net'] = $monthlyNet;
+
                 return $rate;
             }
 
