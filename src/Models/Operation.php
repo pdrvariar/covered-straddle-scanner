@@ -135,24 +135,6 @@ class Operation
         try {
             $db = self::getConnection();
 
-            $sql = "INSERT INTO operations (
-                user_id, symbol, current_price, strike_price, call_strike, put_strike, call_symbol, call_premium,
-                put_symbol, put_premium, expiration_date, days_to_maturity,
-                initial_investment, max_profit, max_loss, profit_percent,
-                monthly_profit_percent, selic_annual, status, strategy_type,
-                risk_level, notes, quantity, lfts11_price, lfts11_quantity,
-                lfts11_investment, lfts11_return
-            ) VALUES (
-                :user_id, :symbol, :current_price, :strike_price, :call_strike, :put_strike, :call_symbol, :call_premium,
-                :put_symbol, :put_premium, :expiration_date, :days_to_maturity,
-                :initial_investment, :max_profit, :max_loss, :profit_percent,
-                :monthly_profit_percent, :selic_annual, :status, :strategy_type,
-                :risk_level, :notes, :quantity, :lfts11_price, :lfts11_quantity,
-                :lfts11_investment, :lfts11_return
-            )";
-
-            $stmt = $db->prepare($sql);
-
             // Determinar se é Collar ou Covered Straddle
             $strategyType = $data['strategy_type'] ?? 'covered_straddle';
             $isCollar = $strategyType === 'collar';
@@ -192,11 +174,69 @@ class Operation
                 ':lfts11_return' => $data['lfts11_return'] ?? null
             ];
 
+            if (!empty($data['id'])) {
+                // UPDATE
+                $sql = "UPDATE operations SET
+                    user_id = :user_id,
+                    symbol = :symbol,
+                    current_price = :current_price,
+                    strike_price = :strike_price,
+                    call_strike = :call_strike,
+                    put_strike = :put_strike,
+                    call_symbol = :call_symbol,
+                    call_premium = :call_premium,
+                    put_symbol = :put_symbol,
+                    put_premium = :put_premium,
+                    expiration_date = :expiration_date,
+                    days_to_maturity = :days_to_maturity,
+                    initial_investment = :initial_investment,
+                    max_profit = :max_profit,
+                    max_loss = :max_loss,
+                    profit_percent = :profit_percent,
+                    monthly_profit_percent = :monthly_profit_percent,
+                    selic_annual = :selic_annual,
+                    status = :status,
+                    strategy_type = :strategy_type,
+                    risk_level = :risk_level,
+                    notes = :notes,
+                    quantity = :quantity,
+                    lfts11_price = :lfts11_price,
+                    lfts11_quantity = :lfts11_quantity,
+                    lfts11_investment = :lfts11_investment,
+                    lfts11_return = :lfts11_return
+                    WHERE id = :id";
+                
+                $params[':id'] = $data['id'];
+                $operationId = $data['id'];
+            } else {
+                // INSERT
+                $sql = "INSERT INTO operations (
+                    user_id, symbol, current_price, strike_price, call_strike, put_strike, call_symbol, call_premium,
+                    put_symbol, put_premium, expiration_date, days_to_maturity,
+                    initial_investment, max_profit, max_loss, profit_percent,
+                    monthly_profit_percent, selic_annual, status, strategy_type,
+                    risk_level, notes, quantity, lfts11_price, lfts11_quantity,
+                    lfts11_investment, lfts11_return
+                ) VALUES (
+                    :user_id, :symbol, :current_price, :strike_price, :call_strike, :put_strike, :call_symbol, :call_premium,
+                    :put_symbol, :put_premium, :expiration_date, :days_to_maturity,
+                    :initial_investment, :max_profit, :max_loss, :profit_percent,
+                    :monthly_profit_percent, :selic_annual, :status, :strategy_type,
+                    :risk_level, :notes, :quantity, :lfts11_price, :lfts11_quantity,
+                    :lfts11_investment, :lfts11_return
+                )";
+                $operationId = null;
+            }
+
+            $stmt = $db->prepare($sql);
+
             // Log dos parâmetros para debug (remover em produção)
             error_log("Salvando operação com parâmetros: " . json_encode(array_keys($params)));
 
             if ($stmt->execute($params)) {
-                $operationId = $db->lastInsertId();
+                if (!$operationId) {
+                    $operationId = $db->lastInsertId();
+                }
                 error_log("Operação salva com sucesso. ID: " . $operationId);
                 return $operationId;
             } else {
