@@ -35,6 +35,14 @@ if ($isCollar) {
     $lucroMaximoReal = ($lucroMaximoPercent / 100) * $operation['initial_investment'];
     $lucroMinimoReal = ($lucroMinimoPercent / 100) * $operation['initial_investment'];
     $somaLucrosReal = $lucroMaximoReal + $lucroMinimoReal;
+
+    // Calcular taxa mensal para Alta e Queda
+    $daysToMaturity = $operation['days_to_maturity'];
+    $taxaMensalAltaPercent = $daysToMaturity > 0 ? ($lucroMaximoPercent * 30) / $daysToMaturity : 0;
+    $taxaMensalAltaReal = ($taxaMensalAltaPercent / 100) * $operation['initial_investment'];
+
+    $taxaMensalQuedaPercent = $daysToMaturity > 0 ? ($lucroMinimoPercent * 30) / $daysToMaturity : 0;
+    $taxaMensalQuedaReal = ($taxaMensalQuedaPercent / 100) * $operation['initial_investment'];
 }
 // Mapeamento de nomes de estratégia
 $strategyNames = [
@@ -531,8 +539,16 @@ include __DIR__ . '/layout/header.php';
                                     <strong class="text-success">R$ <span id="max-profit-up"><?= number_format($lucroMaximoReal, 2, ',', '.') ?></span> (<span id="max-profit-up-percent"><?= number_format($lucroMaximoPercent, 2, ',', '.') ?></span>%)</strong>
                                 </div>
                                 <div class="investment-item d-flex justify-content-between">
+                                    <strong>Taxa Mensal (Alta):</strong>
+                                    <strong class="text-success">R$ <span id="monthly-rate-up"><?= number_format($taxaMensalAltaReal, 2, ',', '.') ?></span> (<span id="monthly-rate-up-percent"><?= number_format($taxaMensalAltaPercent, 2, ',', '.') ?></span>%)</strong>
+                                </div>
+                                <div class="investment-item d-flex justify-content-between">
                                     <strong>Lucro Mínimo (Queda):</strong>
                                     <strong class="text-warning">R$ <span id="min-profit-down"><?= number_format($lucroMinimoReal, 2, ',', '.') ?></span> (<span id="min-profit-down-percent"><?= number_format($lucroMinimoPercent, 2, ',', '.') ?></span>%)</strong>
+                                </div>
+                                <div class="investment-item d-flex justify-content-between">
+                                    <strong>Taxa Mensal (Queda):</strong>
+                                    <strong class="text-warning">R$ <span id="monthly-rate-down"><?= number_format($taxaMensalQuedaReal, 2, ',', '.') ?></span> (<span id="monthly-rate-down-percent"><?= number_format($taxaMensalQuedaPercent, 2, ',', '.') ?></span>%)</strong>
                                 </div>
                                 <div class="investment-item d-flex justify-content-between">
                                     <strong>Soma dos Lucros:</strong>
@@ -1094,15 +1110,32 @@ include __DIR__ . '/layout/header.php';
                     const lucroMinimoReal = minProfit;
                     const somaLucrosReal = lucroMaximoReal + lucroMinimoReal;
 
+                    // Calcular taxa mensal para Alta e Queda
+                    const taxaMensalAltaPercent = daysToMaturity > 0 ? (lucroMaximoPercent * 30) / daysToMaturity : 0;
+                    const taxaMensalAltaReal = (taxaMensalAltaPercent / 100) * initialInvestment;
+
+                    const taxaMensalQuedaPercent = daysToMaturity > 0 ? (lucroMinimoPercent * 30) / daysToMaturity : 0;
+                    const taxaMensalQuedaReal = (taxaMensalQuedaPercent / 100) * initialInvestment;
+
                     // Atualizar os novos campos para Collar
                     if (document.getElementById('max-profit-up')) {
                         document.getElementById('max-profit-up').textContent = formatBR(lucroMaximoReal);
                         document.getElementById('max-profit-up-percent').textContent = formatBR(lucroMaximoPercent);
                     }
 
+                    if (document.getElementById('monthly-rate-up')) {
+                        document.getElementById('monthly-rate-up').textContent = formatBR(taxaMensalAltaReal);
+                        document.getElementById('monthly-rate-up-percent').textContent = formatBR(taxaMensalAltaPercent);
+                    }
+
                     if (document.getElementById('min-profit-down')) {
                         document.getElementById('min-profit-down').textContent = formatBR(lucroMinimoReal);
                         document.getElementById('min-profit-down-percent').textContent = formatBR(lucroMinimoPercent);
+                    }
+
+                    if (document.getElementById('monthly-rate-down')) {
+                        document.getElementById('monthly-rate-down').textContent = formatBR(taxaMensalQuedaReal);
+                        document.getElementById('monthly-rate-down-percent').textContent = formatBR(taxaMensalQuedaPercent);
                     }
 
                     if (document.getElementById('sum-profits')) {
