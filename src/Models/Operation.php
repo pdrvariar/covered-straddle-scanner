@@ -93,6 +93,15 @@ class Operation
             $avgDaysResult = $stmt->fetch(PDO::FETCH_ASSOC);
             $stats['avg_days'] = $avgDaysResult['avg_days'] ?? 0;
 
+            // Usar valor de SELIC salvo em sessão quando disponível
+            if (session_status() === PHP_SESSION_NONE) {
+                @session_start();
+            }
+            if (isset($_SESSION['selic_annual'])) {
+                // $_SESSION['selic_annual'] é armazenado como decimal (ex: 0.1375)
+                $stats['selic'] = number_format((float)$_SESSION['selic_annual'] * 100, 2, ',', '.');
+            }
+
         } catch (Exception $e) {
             // Log error but don't crash
             error_log("Error getting stats: " . $e->getMessage());
@@ -331,3 +340,4 @@ class Operation
         }
     }
 }
+

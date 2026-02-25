@@ -115,16 +115,44 @@ class OPLabAPIClient {
     }
 
     public function getInterestRate(string $rateId = "SELIC"): ?float {
+        // Garantir sessão ativa para poder salvar em sessão
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+
+        $cacheKey = 'selic_annual';
+        $cacheTimeKey = 'selic_cached_at';
+        $maxAge = 24 * 60 * 60; // 24 horas
+
+        // Se já temos valor em sessão e não expirou, retornar direto
+        if (isset($_SESSION[$cacheKey]) && isset($_SESSION[$cacheTimeKey]) && (time() - $_SESSION[$cacheTimeKey] < $maxAge)) {
+            return $_SESSION[$cacheKey];
+        }
+
         try {
             $response = $this->client->get("market/interest_rates/{$rateId}");
             $data = json_decode($response->getBody()->getContents(), true);
 
             if (isset($data['value'])) {
-                return $data['value'] / 100.0;
+                $rate = $data['value'] / 100.0;
+                // Salvar em sessão para uso posterior
+                $_SESSION[$cacheKey] = $rate;
+                $_SESSION[$cacheTimeKey] = time();
+                return $rate;
             }
+
+            // Se não veio value, usar cache se existir
+            if (isset($_SESSION[$cacheKey])) {
+                return $_SESSION[$cacheKey];
+            }
+
             return null;
         } catch (RequestException $e) {
             error_log("API Error fetching interest rate: " . $e->getMessage());
+            // Em caso de erro, retornar valor em sessão se disponível
+            if (isset($_SESSION[$cacheKey])) {
+                return $_SESSION[$cacheKey];
+            }
             return null;
         }
     }
@@ -206,3 +234,4 @@ class OPLabAPIClient {
         }
     }
 }
+
